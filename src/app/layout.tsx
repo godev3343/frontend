@@ -1,6 +1,9 @@
 import './globals.css';
 import { Providers } from './providers';
 import type { Metadata, Viewport } from 'next';
+import { Manrope } from 'next/font/google';
+
+const manrope = Manrope({ subsets: ['latin', 'cyrillic'], variable: '--font-sans', display: 'swap' });
 
 export const metadata: Metadata = {
   title: 'Go — оживи свой город',
@@ -25,7 +28,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ru" className="dark" suppressHydrationWarning>
+<html lang="ru" className={`dark ${manrope.variable}`} suppressHydrationWarning>
       <body className="bg-background text-foreground min-h-screen antialiased">
         <Providers>{children}</Providers>
       </body>
