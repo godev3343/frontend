@@ -1,8 +1,8 @@
 // src/app/(auth)/layout.tsx
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="bg-page-gradient min-h-dvh">
-      <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-4 py-6">{children}</div>
-    </div>
+    <main className="bg-background flex min-h-svh items-center justify-center p-4">
+      <div className="w-full max-w-md">{children}</div>
+    </main>
   );
 }
