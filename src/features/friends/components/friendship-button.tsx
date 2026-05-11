@@ -1,8 +1,8 @@
 // src/features/friends/components/friendship-button.tsx
 "use client";
 
-import { useState } from "react";
 import { Check, UserMinus, UserPlus, X } from "lucide-react";
+import { useState } from "react";
 
 import {
   AlertDialog,

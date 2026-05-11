@@ -3,13 +3,13 @@ import { apiClient } from "@/lib/api/client";
 
 import {
   type Friendship,
+  friendshipSchema,
   type Paginated,
+  paginatedSchema,
   type ProfileEditInput,
   type PublicUser,
-  type UserProfile,
-  friendshipSchema,
-  paginatedSchema,
   publicUserSchema,
+  type UserProfile,
   userProfileSchema,
 } from "./schemas";
 

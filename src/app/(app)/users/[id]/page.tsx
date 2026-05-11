@@ -3,10 +3,10 @@
 
 import { useParams, useRouter } from "next/navigation";
 
+import { Skeleton } from "@/components/ui/skeleton";
 import { FriendshipButton } from "@/features/friends/components/friendship-button";
 import { ProfileHeader } from "@/features/friends/components/profile-header";
 import { useUserProfile } from "@/features/friends/hooks";
-import { Skeleton } from "@/components/ui/skeleton";
 
 export default function UserProfilePage() {
   const params = useParams<{ id: string }>();

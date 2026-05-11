@@ -1,16 +1,16 @@
 // src/app/(app)/profile/page.tsx
 "use client";
 
-import { useState } from "react";
 import { Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
-import { LogoutButton } from "@/features/auth/logout-button";
-import { useMe } from "@/features/auth/hooks";
-import { ProfileEditSheet } from "@/features/friends/components/profile-edit-sheet";
-import { ProfileHeader } from "@/features/friends/components/profile-header";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useMe } from "@/features/auth/hooks";
+import { LogoutButton } from "@/features/auth/logout-button";
+import { ProfileEditSheet } from "@/features/friends/components/profile-edit-sheet";
+import { ProfileHeader } from "@/features/friends/components/profile-header";
 
 export default function ProfilePage() {
   const { data: me, isPending } = useMe();

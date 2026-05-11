@@ -1,8 +1,8 @@
 // src/features/friends/components/profile-header.tsx
 "use client";
 
-import { UserAvatar } from "@/components/brand/user-avatar";
 import { PointsBadge } from "@/components/brand/points-badge";
+import { UserAvatar } from "@/components/brand/user-avatar";
 
 type Stats = {
   friends: number;

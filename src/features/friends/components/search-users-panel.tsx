@@ -1,8 +1,8 @@
 // src/features/friends/components/search-users-panel.tsx
 "use client";
 
-import { useState } from "react";
 import { Search, UserPlus } from "lucide-react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

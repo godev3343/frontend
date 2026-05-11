@@ -2,8 +2,8 @@
 'use client';
 
 import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -12,8 +12,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { register as registerApi, requestEmailVerification } from '@/features/auth/api';
-import { useAuthStore } from '@/features/auth/store';
 import { type RegisterInput, registerSchema } from '@/features/auth/schemas';
+import { useAuthStore } from '@/features/auth/store';
 import { extractError } from '@/lib/api/client';
 
 export default function RegisterPage() {

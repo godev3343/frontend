@@ -4,7 +4,7 @@
 import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { Controller,useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';

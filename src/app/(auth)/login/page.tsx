@@ -3,8 +3,8 @@
 
 import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
 import { GoogleLogin } from '@react-oauth/google';
-import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -14,8 +14,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { login, loginWithGoogle } from '@/features/auth/api';
-import { useAuthStore } from '@/features/auth/store';
 import { type LoginInput, loginSchema } from '@/features/auth/schemas';
+import { useAuthStore } from '@/features/auth/store';
 import { extractError } from '@/lib/api/client';
 
 export default function LoginPage() {

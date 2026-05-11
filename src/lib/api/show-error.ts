@@ -1,5 +1,6 @@
 // src/lib/api/show-error.ts
 import { toast } from 'sonner';
+
 import { extractError } from './client';
 
 /** Удобная обёртка: распаковать ошибку и показать тост. */

@@ -1,8 +1,9 @@
 // src/features/media/__tests__/schemas.test.ts
 import { describe, expect, it } from "vitest";
+
 import {
-  MAX_UPLOAD_BYTES,
   formatValidationError,
+  MAX_UPLOAD_BYTES,
   presignResponseSchema,
   validateImageFile,
 } from "../schemas";

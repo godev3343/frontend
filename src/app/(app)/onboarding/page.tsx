@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import type { z } from 'zod';   // ← добавь эту строку
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -16,7 +17,6 @@ import { submitOnboarding } from '@/features/auth/api';
 import { ME_QUERY_KEY, useMe } from '@/features/auth/hooks';
 import { onboardingSchema } from '@/features/auth/schemas';
 import { extractError } from '@/lib/api/client';
-import type { z } from 'zod';   // ← добавь эту строку
 
 
 export default function OnboardingPage() {

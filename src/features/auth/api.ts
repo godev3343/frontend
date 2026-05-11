@@ -1,5 +1,6 @@
 // src/features/auth/api.ts
 import { apiClient } from '@/lib/api/client';
+
 import {
   type EmailVerifyConfirmInput,
   type EmailVerifyRequestInput,
@@ -9,8 +10,8 @@ import {
   type PasswordResetRequestInput,
   type RegisterInput,
   type TokenPair,
-  type User,
   tokenPairSchema,
+  type User,
   userSchema,
 } from './schemas';
 

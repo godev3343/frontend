@@ -4,7 +4,6 @@
 import Link from "next/link";
 
 import { UserAvatar } from "@/components/brand/user-avatar";
-import { Button } from "@/components/ui/button";
 
 import type { PublicUser } from "../schemas";
 

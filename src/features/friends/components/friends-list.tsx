@@ -1,8 +1,8 @@
 // src/features/friends/components/friends-list.tsx
 "use client";
 
-import { useEffect, useRef } from "react";
 import type { UseInfiniteQueryResult } from "@tanstack/react-query";
+import { useEffect, useRef } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 

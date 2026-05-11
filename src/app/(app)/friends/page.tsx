@@ -3,8 +3,10 @@
 
 import { Check, X } from "lucide-react";
 
-import { FriendshipButton } from "@/features/friends/components/friendship-button";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FriendsList } from "@/features/friends/components/friends-list";
+import { FriendshipButton } from "@/features/friends/components/friendship-button";
 import { SearchUsersPanel } from "@/features/friends/components/search-users-panel";
 import { UserCard } from "@/features/friends/components/user-card";
 import {
@@ -15,8 +17,6 @@ import {
   useIncomingRequests,
   useOutgoingRequests,
 } from "@/features/friends/hooks";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function FriendsPage() {
   const friends = useFriends();
