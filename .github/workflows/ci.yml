@@ -25,6 +25,8 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+        env:
+          PNPM_CONFIG_STRICT_DEP_BUILDS: false
 
       - name: Typecheck
         run: pnpm typecheck
