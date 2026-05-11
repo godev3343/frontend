@@ -11,12 +11,14 @@ jobs:
   check:
     name: Lint + Typecheck + Build
     runs-on: ubuntu-latest
+    env:
+      PNPM_CONFIG_STRICT_DEP_BUILDS: "false"
     steps:
       - uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 11
+          version: 11.0.9
 
       - uses: actions/setup-node@v4
         with:
@@ -25,8 +27,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-        env:
-          PNPM_CONFIG_STRICT_DEP_BUILDS: false
 
       - name: Typecheck
         run: pnpm typecheck
