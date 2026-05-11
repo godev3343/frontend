@@ -14,7 +14,6 @@ async function performRefresh(): Promise<string | null> {
     try {
       const res = await fetch('/api/auth/refresh', {
         method: 'POST',
-        // нужно, чтобы браузер слал httpOnly cookie
         credentials: 'same-origin',
       });
       if (!res.ok) return null;
@@ -24,7 +23,6 @@ async function performRefresh(): Promise<string | null> {
     } catch {
       return null;
     } finally {
-      // важно: освобождаем флаг после завершения, чтобы следующий 401 запустил новый refresh
       refreshInFlight = null;
     }
   })();
@@ -38,16 +36,16 @@ export const apiClient = ky.create({
   retry: { limit: 1, methods: ['get'] },
   hooks: {
     beforeRequest: [
-      (request) => {
+      ({ request }) => {
         const token = useAuthStore.getState().accessToken;
         if (token) request.headers.set('Authorization', `Bearer ${token}`);
       },
     ],
     afterResponse: [
-      async (request, _options, response): Promise<KyResponse | undefined> => {
+      async ({ request, response }): Promise<KyResponse | undefined> => {
         if (response.status !== 401) return response;
 
-        // защита от бесконечной петли — если это сам refresh упал, не ретраим
+        // защита от бесконечной петли: если это сам refresh упал — не ретраим
         if (request.url.includes('/api/auth/refresh')) return response;
 
         // защита от ретрая ретрая — кастомный заголовок
@@ -55,7 +53,6 @@ export const apiClient = ky.create({
 
         const newAccess = await performRefresh();
         if (!newAccess) {
-          // refresh не удался — чистим store, пусть middleware/AuthGate сделают редирект
           useAuthStore.getState().clear();
           return response;
         }
@@ -83,12 +80,15 @@ export async function extractError(err: unknown): Promise<{
         code?: string;
       };
       return {
-        detail: body.detail ?? `Ошибка ${httpErr.response.status}`,
+        detail: body.detail ?? `HTTP ${httpErr.response.status}`,
         code: body.code,
         status: httpErr.response.status,
       };
     } catch {
-      return { detail: `Ошибка ${httpErr.response.status}`, status: httpErr.response.status };
+      return {
+        detail: `HTTP ${httpErr.response.status}`,
+        status: httpErr.response.status,
+      };
     }
   }
   return { detail: 'Сетевая ошибка', status: 0 };

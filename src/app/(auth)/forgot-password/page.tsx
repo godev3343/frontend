@@ -1,7 +1,7 @@
 // src/app/(auth)/forgot-password/page.tsx
 'use client';
 
-import { zodResolver } from '@hookform/resolvers/zod';
+import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -22,7 +22,7 @@ export default function ForgotPasswordPage() {
   const [submitting, setSubmitting] = useState(false);
 
   const form = useForm<PasswordResetRequestInput>({
-    resolver: zodResolver(passwordResetRequestSchema),
+    resolver: standardSchemaResolver(passwordResetRequestSchema),
     defaultValues: { email: '' },
   });
 

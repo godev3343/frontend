@@ -1,7 +1,7 @@
 // src/app/(app)/onboarding/page.tsx
 'use client';
 
-import { zodResolver } from '@hookform/resolvers/zod';
+import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -14,8 +14,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { submitOnboarding } from '@/features/auth/api';
 import { ME_QUERY_KEY, useMe } from '@/features/auth/hooks';
-import { type OnboardingInput, onboardingSchema } from '@/features/auth/schemas';
+import { onboardingSchema } from '@/features/auth/schemas';
 import { extractError } from '@/lib/api/client';
+import type { z } from 'zod';   // ← добавь эту строку
+
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -23,9 +25,18 @@ export default function OnboardingPage() {
   const { data: me, isLoading } = useMe();
   const [submitting, setSubmitting] = useState(false);
 
-  const form = useForm<OnboardingInput>({
-    resolver: zodResolver(onboardingSchema),
-    defaultValues: { display_name: '', bio: '', consent: false as unknown as true },
+  // src/app/(app)/onboarding/page.tsx (внутри OnboardingPage)
+  const form = useForm<
+    z.input<typeof onboardingSchema>,
+    unknown,
+    z.output<typeof onboardingSchema>
+  >({
+    resolver: standardSchemaResolver(onboardingSchema),
+    defaultValues: {
+      display_name: '',
+      bio: '',
+      consent: false,
+    },
   });
 
   // если уже онбордился — на главную
@@ -33,7 +44,7 @@ export default function OnboardingPage() {
     if (me?.consent_at && me.display_name) router.replace('/');
   }, [me, router]);
 
-  async function onSubmit(values: OnboardingInput) {
+async function onSubmit(values: z.output<typeof onboardingSchema>) {
     setSubmitting(true);
     try {
       const user = await submitOnboarding(values);
@@ -90,12 +101,11 @@ export default function OnboardingPage() {
 
           <div className="flex items-start gap-2">
             <Checkbox
-              id="consent"
-              checked={form.watch('consent') === true}
-              onCheckedChange={(v) =>
-                form.setValue('consent', v === true as unknown as true, { shouldValidate: true })
+              checked={form.watch('consent')}
+              onCheckedChange={(v: boolean | 'indeterminate') =>
+              form.setValue('consent', v === true, { shouldValidate: true })
               }
-            />
+              />
             <Label htmlFor="consent" className="text-muted-foreground text-xs leading-relaxed">
               Согласен с обработкой персональных данных и Условиями использования
             </Label>

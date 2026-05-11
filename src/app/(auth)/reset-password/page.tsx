@@ -1,7 +1,7 @@
 // src/app/(auth)/reset-password/page.tsx
 'use client';
 
-import { zodResolver } from '@hookform/resolvers/zod';
+import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -25,7 +25,7 @@ export default function ResetPasswordPage() {
   const [submitting, setSubmitting] = useState(false);
 
   const form = useForm<PasswordResetConfirmInput>({
-    resolver: zodResolver(passwordResetConfirmSchema),
+    resolver: standardSchemaResolver(passwordResetConfirmSchema),
     defaultValues: { token, password: '', password_confirm: '' },
   });
 

@@ -1,5 +1,5 @@
 // src/features/auth/schemas.ts
-import { z } from 'zod';
+import { z } from "zod/v4";
 
 export const emailSchema = z
   .string()
@@ -50,9 +50,9 @@ export const passwordResetConfirmSchema = z
 
 export const onboardingSchema = z.object({
   display_name: z.string().trim().min(2, 'Минимум 2 символа').max(100),
-  bio: z.string().trim().max(300).optional().default(''),
-  consent: z.literal(true, {
-    errorMap: () => ({ message: 'Нужно согласие на обработку ПДн' }),
+  bio: z.string().trim().max(300).default(''),
+  consent: z.boolean().refine((v) => v === true, {
+    message: 'Нужно согласие на обработку ПДн',
   }),
 });
 

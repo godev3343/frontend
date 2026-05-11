@@ -1,7 +1,7 @@
 // src/app/(auth)/register/page.tsx
 'use client';
 
-import { zodResolver } from '@hookform/resolvers/zod';
+import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -22,7 +22,7 @@ export default function RegisterPage() {
   const [submitting, setSubmitting] = useState(false);
 
   const form = useForm<RegisterInput>({
-    resolver: zodResolver(registerSchema),
+    resolver: standardSchemaResolver(registerSchema),
     defaultValues: { email: '', first_name: '', password: '' },
   });
 

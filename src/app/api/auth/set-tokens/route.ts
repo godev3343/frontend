@@ -1,7 +1,7 @@
 // src/app/api/auth/set-tokens/route.ts
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
+import { z } from "zod/v4";
 
 const bodySchema = z.object({
   access: z.string().min(1),

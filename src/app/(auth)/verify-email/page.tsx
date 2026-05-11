@@ -1,7 +1,7 @@
 // src/app/(auth)/verify-email/page.tsx
 'use client';
 
-import { zodResolver } from '@hookform/resolvers/zod';
+import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
@@ -31,7 +31,7 @@ export default function VerifyEmailPage() {
   const [resendIn, setResendIn] = useState(RESEND_TIMEOUT);
 
   const form = useForm<EmailVerifyConfirmInput>({
-    resolver: zodResolver(emailVerifyConfirmSchema),
+    resolver: standardSchemaResolver(emailVerifyConfirmSchema),
     defaultValues: { email, code: '' },
   });
 
