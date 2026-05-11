@@ -1,142 +1,193 @@
+/* src/app/globals.css */
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
 
 @custom-variant dark (&:is(.dark *));
 
+/* ============================================================
+   ТОКЕНЫ ДИЗАЙН-СИСТЕМЫ — см. design.md
+   ============================================================ */
+
 @theme inline {
+  /* shadcn aliases — мапятся на :root переменные ниже */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
-  /* Brand — Go */
-  --color-brand-lime: #c7f03a;
-  --color-brand-lime-foreground: #0a0a0a;
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
 
-  /* Vibes — для VibeBadge и фильтров на карте */
-  --color-vibe-calm: #7dd3fc;
-  --color-vibe-active: #fb923c;
-  --color-vibe-productive: #a78bfa;
-  --color-vibe-romantic: #f472b6;
-  --color-vibe-musical: #34d399;
-  --color-vibe-gaming: #fbbf24;
-  --color-vibe-networking: #60a5fa;
+  /* Шрифты */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Radius */
+  --radius: 0.75rem; /* 12px — rounded-xl по дизайну */
+  --radius-sm: calc(var(--radius) * 0.67); /* 8px */
+  --radius-md: var(--radius); /* 12px */
+  --radius-lg: calc(var(--radius) * 1.33); /* 16px */
+  --radius-xl: calc(var(--radius) * 2); /* 24px */
+  --radius-2xl: calc(var(--radius) * 2.67); /* 32px */
+
+  /* Вайбы мест — 7 шт, цвета адаптированы под бренд (purple-friendly).
+     Применяются на VibeBadge, фильтрах карты, маркерах. */
+  --color-vibe-calm: #60a5fa; /* blue-400 */
+  --color-vibe-active: #fb923c; /* orange-400 */
+  --color-vibe-productive: #c084fc; /* purple-400 */
+  --color-vibe-romantic: #f472b6; /* pink-400 */
+  --color-vibe-musical: #4ade80; /* green-400 */
+  --color-vibe-gaming: #fbbf24; /* amber-400 */
+  --color-vibe-networking: #3b82f6; /* blue-500 */
+
+  /* Эмоции — 6 шт, для emotional traces (Этап 1+, токены готовы) */
+  --color-emotion-joy: #fbbf24;
+  --color-emotion-sad: #3b82f6;
+  --color-emotion-anger: #ef4444;
+  --color-emotion-calm: #10b981;
+  --color-emotion-love: #ec4899;
+  --color-emotion-fear: #8b5cf6;
 }
 
+/* ============================================================
+   LIGHT theme — не используется (по design.md dark всегда),
+   оставлено как fallback на случай user-preference переключения
+   ============================================================ */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.91 0.21 120);
-  --primary-foreground: oklch(0.15 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --background: #ffffff;
+  --foreground: #030712;
+  --card: #ffffff;
+  --card-foreground: #030712;
+  --popover: #ffffff;
+  --popover-foreground: #030712;
+  --primary: #a855f7; /* purple-500 */
+  --primary-foreground: #ffffff;
+  --secondary: #f3f4f6;
+  --secondary-foreground: #030712;
+  --muted: #f3f4f6;
+  --muted-foreground: #6b7280;
+  --accent: #ec4899; /* pink-500 */
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --border: #e5e7eb;
+  --input: #e5e7eb;
+  --ring: #a855f7;
 }
 
+/* ============================================================
+   DARK theme — основная, по design.md
+   ============================================================ */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.91 0.21 124);
-  --primary-foreground: oklch(0.18 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: #111827; /* gray-900 */
+  --foreground: #ffffff;
+  --card: #1f2937; /* gray-800 */
+  --card-foreground: #ffffff;
+  --popover: #111827;
+  --popover-foreground: #ffffff;
+  --primary: #a855f7; /* purple-500 — main brand */
+  --primary-foreground: #ffffff;
+  --secondary: #1f2937; /* gray-800 */
+  --secondary-foreground: #ffffff;
+  --muted: #1f2937;
+  --muted-foreground: #9ca3af; /* gray-400 */
+  --accent: #ec4899; /* pink-500 */
+  --accent-foreground: #ffffff;
+  --destructive: #f87171;
+  --border: #374151; /* gray-700 */
+  --input: #1f2937;
+  --ring: #a855f7;
 }
 
+/* ============================================================
+   Base layer
+   ============================================================ */
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
   }
+
+  html {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
   body {
     @apply bg-background text-foreground;
   }
-  html {
-    @apply font-sans;
+
+  /* Touch targets — минимум 44x44 по design.md a11y */
+  button,
+  [role='button'],
+  a {
+    @apply outline-none;
+  }
+
+  /* Focus ring — purple-500 по design.md */
+  *:focus-visible {
+    @apply ring-ring/60 ring-offset-background ring-2 ring-offset-2 outline-none;
+  }
+}
+
+/* ============================================================
+   Brand utilities — градиенты и глоу из design.md
+   Использовать как обычные tailwind-классы.
+   ============================================================ */
+@layer utilities {
+  /* Gradient 1 — основной бренд (CTA-кнопки, логотип) */
+  .bg-brand-gradient {
+    background: linear-gradient(135deg, #a855f7 0%, #ec4899 50%, #fb923c 100%);
+  }
+
+  /* Gradient 2 — фон страниц/секций */
+  .bg-page-gradient {
+    background: linear-gradient(180deg, #030712 0%, #500724 50%, #030712 100%);
+  }
+
+  /* Gradient 3 — карточки */
+  .bg-card-gradient {
+    background: linear-gradient(135deg, #1e0a2e 0%, #1f2937 100%);
+  }
+
+  /* Глоу — purple */
+  .shadow-glow-purple {
+    box-shadow: 0 0 32px -4px rgb(168 85 247 / 0.3);
+  }
+
+  .shadow-glow-purple-lg {
+    box-shadow: 0 0 48px -4px rgb(168 85 247 / 0.5);
+  }
+
+  /* Глоу — pink */
+  .shadow-glow-pink {
+    box-shadow: 0 0 32px -4px rgb(236 72 153 / 0.2);
+  }
+
+  /* Glassmorphism — для Glass Card */
+  .glass {
+    background: rgb(255 255 255 / 0.05);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgb(255 255 255 / 0.1);
+  }
+
+  .glass-dark {
+    background: rgb(0 0 0 / 0.3);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgb(255 255 255 / 0.1);
   }
 }
