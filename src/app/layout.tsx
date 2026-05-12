@@ -1,5 +1,6 @@
 // src/app/layout.tsx
 import './globals.css';
+import "maplibre-gl/dist/maplibre-gl.css";
 
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';

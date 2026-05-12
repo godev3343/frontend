@@ -2,6 +2,7 @@
 "use client";
 
 import { Pencil } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -9,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMe } from "@/features/auth/hooks";
 import { LogoutButton } from "@/features/auth/logout-button";
+import { MyCheckinsList } from "@/features/checkins/components/my-checkins-list";
 import { ProfileEditSheet } from "@/features/friends/components/profile-edit-sheet";
 import { ProfileHeader } from "@/features/friends/components/profile-header";
 
@@ -41,6 +43,15 @@ export default function ProfilePage() {
           checkins: 0,
           points: me.points,
         }}
+        animatePoints
+        pointsExtra={
+          <Link
+            href="/profile/points"
+            className="text-xs text-purple-400 underline-offset-2 hover:underline focus-visible:underline"
+          >
+            История
+          </Link>
+        }
         action={
           <div className="flex gap-2">
             <Button onClick={() => setEditOpen(true)}>
@@ -62,7 +73,10 @@ export default function ProfilePage() {
         }}
       />
 
-      {/* История чек-инов — будет в Epic 6 */}
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold">История чек-инов</h2>
+        <MyCheckinsList />
+      </section>
     </div>
   );
 }

@@ -1,12 +1,10 @@
 // src/app/(app)/page.tsx
-import { Logo } from '@/components/brand/logo';
+import { CityMap } from "@/features/map/components/city-map-loader";
 
 export default function MapPage() {
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center gap-4 p-6">
-      <Logo size="md" />
-      <h1 className="text-2xl font-bold text-white">Карта</h1>
-      <p className="text-gray-400">MapLibre появится в EPIC 5</p>
+    <div className="h-[calc(100dvh-4rem)] w-full">
+      <CityMap />
     </div>
   );
 }

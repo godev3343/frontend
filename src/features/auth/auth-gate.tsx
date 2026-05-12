@@ -3,6 +3,9 @@
 
 import { useEffect, useState } from 'react';
 
+import { identify } from '@/lib/analytics';
+
+import { useMe } from './hooks';
 import { useAuthStore } from './store';
 
 /**
@@ -47,5 +50,33 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     );
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      <IdentifyOnMe />
+      {children}
+    </>
+  );
+}
+
+/**
+ * Сайд-эффект-компонент: как только `useMe()` отдал юзера — дёргаем
+ * PostHog identify. Вынесен отдельно, чтобы не делать AuthGate
+ * зависимым от useMe (он крутится до момента когда access ещё не
+ * установлен, и useMe вернёт data только после).
+ *
+ * Идемпотентен: posthog.identify повторно с тем же id — no-op.
+ * resetAnalytics на logout вызывается в LogoutButton.
+ */
+function IdentifyOnMe() {
+  const { data: me } = useMe();
+
+  useEffect(() => {
+    if (me?.id) {
+      identify(me.id, {
+        has_consent: Boolean(me.consent_at),
+      });
+    }
+  }, [me?.id, me?.consent_at]);
+
+  return null;
 }

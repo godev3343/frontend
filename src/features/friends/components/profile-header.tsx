@@ -17,6 +17,13 @@ type Props = {
   stats: Stats;
   /** Слот под кнопки: «Редактировать» для self, FriendshipButton для чужого. */
   action: React.ReactNode;
+  /**
+   * Анимировать бейдж поинтов на увеличение. Включаем только на self-профиле:
+   * у чужого профиля поинты не меняются в рамках сессии.
+   */
+  animatePoints?: boolean;
+  /** Опциональный слот под бейджем (например, ссылка «История поинтов»). */
+  pointsExtra?: React.ReactNode;
 };
 
 export function ProfileHeader({
@@ -25,6 +32,8 @@ export function ProfileHeader({
   bio,
   stats,
   action,
+  animatePoints = false,
+  pointsExtra,
 }: Props) {
   return (
     <div className="flex flex-col gap-6 rounded-2xl border bg-card p-6 sm:flex-row sm:items-start">
@@ -40,10 +49,13 @@ export function ProfileHeader({
           {bio && <p className="mt-1 text-muted-foreground">{bio}</p>}
         </div>
 
-        <div className="flex flex-wrap gap-4 text-sm">
+        <div className="flex flex-wrap items-center gap-4 text-sm">
           <Stat label="Друзей" value={stats.friends} />
           <Stat label="Чек-инов" value={stats.checkins} />
-          <PointsBadge points={stats.points} />
+          <div className="flex items-center gap-2">
+            <PointsBadge points={stats.points} animateChange={animatePoints} />
+            {pointsExtra}
+          </div>
         </div>
 
         <div className="pt-2">{action}</div>

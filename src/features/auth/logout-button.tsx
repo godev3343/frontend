@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { logout } from '@/features/auth/api';
 import { useAuthStore } from '@/features/auth/store';
+import { resetAnalytics } from '@/lib/analytics';
 
 export function LogoutButton() {
   const router = useRouter();
@@ -22,6 +23,9 @@ export function LogoutButton() {
     } finally {
       clearAuth();
       queryClient.clear();
+      // Сбрасываем PostHog identify — следующие события до нового login
+      // пойдут как anonymous, а не от старого user_id.
+      resetAnalytics();
       router.replace('/login');
     }
   }

@@ -1,9 +1,13 @@
 // src/app/(app)/feed/page.tsx
+import { FeedList } from "@/features/checkins/components/feed-list";
+
+export const metadata = { title: "Лента" };
+
 export default function FeedPage() {
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold text-white">Лента</h1>
-      <p className="mt-2 text-gray-400">EPIC 6</p>
-    </div>
+    <main className="container mx-auto max-w-2xl px-4 py-6">
+      <h1 className="mb-4 text-xl font-semibold">Лента</h1>
+      <FeedList />
+    </main>
   );
 }

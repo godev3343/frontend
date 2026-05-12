@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import type { z } from 'zod';   // ← добавь эту строку
+import type { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -16,6 +16,7 @@ import { Label } from '@/components/ui/label';
 import { submitOnboarding } from '@/features/auth/api';
 import { ME_QUERY_KEY, useMe } from '@/features/auth/hooks';
 import { onboardingSchema } from '@/features/auth/schemas';
+import { track } from '@/lib/analytics';
 import { extractError } from '@/lib/api/client';
 
 
@@ -49,6 +50,9 @@ async function onSubmit(values: z.output<typeof onboardingSchema>) {
     try {
       const user = await submitOnboarding(values);
       queryClient.setQueryData(ME_QUERY_KEY, user);
+      // signup воронка завершена — отдельное событие от login_completed.
+      // Шлём ДО router.replace, чтобы PostHog успел прокинуть в очередь.
+      track('signup_completed');
       router.replace('/');
     } catch (err) {
       const e = await extractError(err);

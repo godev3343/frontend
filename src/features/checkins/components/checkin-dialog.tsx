@@ -1,0 +1,244 @@
+// src/features/checkins/components/checkin-dialog.tsx
+"use client";
+
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
+import { useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod/v4";
+
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useUserLocation } from "@/features/map/hooks/use-user-location";
+import {
+  CHECKIN_RADIUS_METERS,
+  haversineMeters,
+} from "@/features/map/lib/distance";
+import type { PlaceDetail } from "@/features/map/schemas";
+import { ImagePicker } from "@/features/media/image-picker";
+
+import { useCreateCheckin } from "../hooks/use-create-checkin";
+
+const formSchema = z.object({
+  comment: z.string().max(500).default(""),
+});
+
+type FormValues = z.input<typeof formSchema>;
+
+type Props = {
+  place: PlaceDetail;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSuccess?: () => void;
+};
+
+export function CheckinDialog({ place, open, onOpenChange, onSuccess }: Props) {
+  const { status, coords, request } = useUserLocation({
+    strict: true,
+    auto: false,
+  });
+
+  const [photoUrl, setPhotoUrl] = useState<string>("");
+  const [photoKey, setPhotoKey] = useState<string | null>(null);
+
+  const form = useForm<
+    z.input<typeof formSchema>,
+    unknown,
+    z.output<typeof formSchema>
+  >({
+    resolver: standardSchemaResolver(formSchema),
+    defaultValues: { comment: "" },
+  });
+
+  const createCheckinMut = useCreateCheckin();
+
+  useEffect(() => {
+    if (open) request();
+  }, [open, request]);
+
+  const handleOpenChange = (next: boolean) => {
+    if (!next) {
+      form.reset({ comment: "" });
+      setPhotoUrl("");
+      setPhotoKey(null);
+    }
+    onOpenChange(next);
+  };
+
+  const distance = useMemo(() => {
+    if (!coords) return null;
+    return haversineMeters(
+      { lat: coords.lat, lng: coords.lng },
+      place.location,
+    );
+  }, [coords, place.location]);
+
+  const isInRange =
+    coords !== null && distance !== null && distance <= CHECKIN_RADIUS_METERS;
+
+  const onSubmit = (values: FormValues) => {
+    if (!coords) {
+      toast.error("Не удалось определить вашу геопозицию");
+      return;
+    }
+    const d = haversineMeters(
+      { lat: coords.lat, lng: coords.lng },
+      place.location,
+    );
+    if (d > CHECKIN_RADIUS_METERS) {
+      toast.error("Подойдите ближе к месту (≤100м)");
+      return;
+    }
+
+    const comment = (values.comment ?? "").trim();
+
+    createCheckinMut.mutate(
+      {
+        place_id: place.id,
+        lat: coords.lat,
+        lng: coords.lng,
+        photo_key: photoKey,
+        comment: comment.length > 0 ? comment : null,
+      },
+      {
+        onSuccess: () => {
+          handleOpenChange(false);
+          onSuccess?.();
+        },
+      },
+    );
+  };
+
+  const submitDisabled =
+    createCheckinMut.isPending ||
+    status === "requesting" ||
+    !coords ||
+    !isInRange;
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="z-[60] sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Чек-ин в {place.name}</DialogTitle>
+          <DialogDescription>
+            Добавьте фото и комментарий — необязательно.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="flex flex-col gap-4"
+        >
+          <div className="flex flex-col gap-2">
+            <Label>Фото</Label>
+            <ImagePicker
+              purpose="checkin"
+              value={photoUrl}
+              onChange={(url, key) => {
+                setPhotoUrl(url);
+                setPhotoKey(key);
+              }}
+              allow_camera
+              enable_compression
+              label="Добавить фото"
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="comment">Комментарий</Label>
+            <Textarea
+              id="comment"
+              maxLength={500}
+              rows={3}
+              placeholder="Как тут?"
+              {...form.register("comment")}
+            />
+          </div>
+
+          <GpsHint
+            status={status}
+            distance={distance}
+            isInRange={isInRange}
+            onRetry={request}
+          />
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => handleOpenChange(false)}
+              disabled={createCheckinMut.isPending}
+            >
+              Отмена
+            </Button>
+            <Button type="submit" disabled={submitDisabled}>
+              {createCheckinMut.isPending ? "Отправка..." : "Чек-ин"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function GpsHint(props: {
+  status: ReturnType<typeof useUserLocation>["status"];
+  distance: number | null;
+  isInRange: boolean;
+  onRetry: () => void;
+}) {
+  const { status, distance, isInRange, onRetry } = props;
+
+  if (status === "requesting") {
+    return (
+      <p className="text-muted-foreground text-sm">Определяем геопозицию...</p>
+    );
+  }
+  if (status === "denied") {
+    return (
+      <div className="flex items-center justify-between gap-2 text-sm">
+        <span className="text-destructive">
+          Доступ к геолокации запрещён
+        </span>
+        <Button type="button" variant="link" size="sm" onClick={onRetry}>
+          Повторить
+        </Button>
+      </div>
+    );
+  }
+  if (status === "error") {
+    return (
+      <div className="flex items-center justify-between gap-2 text-sm">
+        <span className="text-destructive">
+          Не удалось получить координаты
+        </span>
+        <Button type="button" variant="link" size="sm" onClick={onRetry}>
+          Повторить
+        </Button>
+      </div>
+    );
+  }
+  if (status === "granted" && distance !== null) {
+    return (
+      <p
+        className={
+          isInRange ? "text-sm text-emerald-500" : "text-sm text-destructive"
+        }
+      >
+        {isInRange
+          ? `В радиусе чек-ина (${Math.round(distance)} м)`
+          : `Слишком далеко: ${Math.round(distance)} м (нужно ≤100)`}
+      </p>
+    );
+  }
+  return null;
+}

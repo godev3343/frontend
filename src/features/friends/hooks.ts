@@ -10,6 +10,7 @@ import {
 } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+import { track } from "@/lib/analytics";
 import { showError } from "@/lib/api/show-error";
 
 import {
@@ -171,6 +172,7 @@ export function useSendFriendRequest() {
       });
       qc.invalidateQueries({ queryKey: friendsKeys.outgoing() });
       toast.success("Заявка отправлена");
+      track("friend_request_sent", { to_user_id: toUserId });
     },
   });
 }
