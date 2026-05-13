@@ -3,60 +3,75 @@ import { describe, expect, it } from "vitest";
 
 import {
   formatValidationError,
-  MAX_UPLOAD_BYTES,
   presignResponseSchema,
   validateImageFile,
 } from "../schemas";
 
-function fakeFile(opts: { type: string; size: number; name?: string }): File {
-  const blob = new Blob([new Uint8Array(opts.size)], { type: opts.type });
-  return new File([blob], opts.name ?? "test.jpg", { type: opts.type });
-}
-
 describe("validateImageFile", () => {
   it("принимает валидный jpeg в пределах лимита", () => {
-    expect(validateImageFile(fakeFile({ type: "image/jpeg", size: 1024 }))).toBeNull();
+    const file = new File([new Uint8Array(1024)], "photo.jpg", { type: "image/jpeg" });
+    expect(validateImageFile(file)).toBeNull();
   });
 
   it("отклоняет неподдерживаемый тип", () => {
-    const err = validateImageFile(fakeFile({ type: "image/gif", size: 1024 }));
-    expect(err?.code).toBe("bad_type");
+    const file = new File([new Uint8Array(10)], "doc.pdf", { type: "application/pdf" });
+    expect(validateImageFile(file)).toEqual({
+      code: "bad_type",
+      allowed: ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"],
+    });
   });
 
   it("отклоняет слишком большой файл", () => {
-    const err = validateImageFile(
-      fakeFile({ type: "image/jpeg", size: MAX_UPLOAD_BYTES + 1 }),
-    );
+    const file = new File([new Uint8Array(11 * 1024 * 1024)], "huge.jpg", {
+      type: "image/jpeg",
+    });
+    const err = validateImageFile(file);
     expect(err?.code).toBe("too_large");
   });
-});
 
-describe("formatValidationError", () => {
   it("форматирует размер в МБ", () => {
-    const msg = formatValidationError({ code: "too_large", max_bytes: MAX_UPLOAD_BYTES });
-    expect(msg).toContain("10");
+    const msg = formatValidationError({ code: "too_large", max_bytes: 10 * 1024 * 1024 });
+    expect(msg).toContain("10 МБ");
   });
 });
 
+/**
+ * Бэк presign response (apps/media/serializers/presign.py::PresignResponseSerializer):
+ *   {asset_id, upload_url, key, expires_in}
+ *
+ * Поля public_url / expires_at / fields НЕ возвращаются — multipart fallback
+ * на бэке не реализован, используется чистый PUT в R2.
+ */
 describe("presignResponseSchema", () => {
-  it("парсит ответ без fields", () => {
+  it("парсит минимальный ответ бэка", () => {
     const parsed = presignResponseSchema.parse({
-      key: "u/avatar/abc.jpg",
+      asset_id: 42,
+      key: "avatars/42/abc/original.jpg",
       upload_url: "https://r2.example.com/signed",
-      public_url: "https://cdn.example.com/u/avatar/abc.jpg",
-      expires_at: "2026-05-12T12:00:00Z",
+      expires_in: 300,
     });
-    expect(parsed.fields).toBeUndefined();
+    expect(parsed.asset_id).toBe(42);
+    expect(parsed.key).toBe("avatars/42/abc/original.jpg");
+    expect(parsed.expires_in).toBe(300);
   });
 
-  it("парсит ответ с fields (POST multipart)", () => {
-    const parsed = presignResponseSchema.parse({
-      key: "u/avatar/abc.jpg",
-      upload_url: "https://r2.example.com/",
-      fields: { policy: "p", "x-amz-signature": "sig" },
-      public_url: "https://cdn.example.com/u/avatar/abc.jpg",
-      expires_at: "2026-05-12T12:00:00Z",
-    });
-    expect(parsed.fields).toBeDefined();
+  it("отклоняет ответ без asset_id", () => {
+    expect(() =>
+      presignResponseSchema.parse({
+        key: "avatars/42/abc/original.jpg",
+        upload_url: "https://r2.example.com/signed",
+        expires_in: 300,
+      }),
+    ).toThrow();
+  });
+
+  it("отклоняет ответ без expires_in", () => {
+    expect(() =>
+      presignResponseSchema.parse({
+        asset_id: 42,
+        key: "avatars/42/abc/original.jpg",
+        upload_url: "https://r2.example.com/signed",
+      }),
+    ).toThrow();
   });
 });

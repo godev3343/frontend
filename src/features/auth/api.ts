@@ -4,18 +4,24 @@ import { apiClient } from '@/lib/api/client';
 import {
   type EmailVerifyConfirmInput,
   type EmailVerifyRequestInput,
+  googleAuthResponseSchema,
   type LoginInput,
   type OnboardingInput,
   type PasswordResetConfirmInput,
   type PasswordResetRequestInput,
   type RegisterInput,
+  registerResponseSchema,
   type TokenPair,
   tokenPairSchema,
   type User,
   userSchema,
 } from './schemas';
 
-/** Сохраняет refresh в httpOnly cookie и возвращает access. */
+/**
+ * Сохраняет refresh в httpOnly cookie через Next route и возвращает access.
+ * Access живёт ТОЛЬКО в zustand (in-memory); после reload восстанавливается
+ * через AuthGate → POST /api/auth/refresh (тоже Next route, читает cookie).
+ */
 async function persistTokens(tokens: TokenPair): Promise<string> {
   const res = await fetch('/api/auth/set-tokens', {
     method: 'POST',
@@ -34,26 +40,32 @@ export async function login(input: LoginInput): Promise<{ access: string }> {
   return { access };
 }
 
-export async function register(input: RegisterInput): Promise<{ access: string }> {
+/**
+ * Register — бэк отдаёт ТОЛЬКО {detail: "..."}, без токенов.
+ * Юзер должен сначала подтвердить email (POST /api/auth/email/verify/confirm),
+ * а потом залогиниться. Поэтому возвращаем void; страница регистрации
+ * сама редиректит на /verify-email.
+ */
+export async function register(input: RegisterInput): Promise<void> {
   const raw = await apiClient.post('api/auth/register', { json: input }).json();
-  const tokens = tokenPairSchema.parse(raw);
-  const access = await persistTokens(tokens);
-  return { access };
+  // Парсим только чтобы убедиться в shape ответа — детально detail нам не нужен.
+  registerResponseSchema.parse(raw);
 }
 
 export async function loginWithGoogle(idToken: string): Promise<{ access: string }> {
   const raw = await apiClient
     .post('api/auth/google', { json: { id_token: idToken } })
     .json();
-  const tokens = tokenPairSchema.parse(raw);
-  const access = await persistTokens(tokens);
+  const parsed = googleAuthResponseSchema.parse(raw);
+  const access = await persistTokens({ access: parsed.access, refresh: parsed.refresh });
   return { access };
 }
 
 export async function logout(): Promise<void> {
-  // 1) сказать бэку (он blacklist'ит refresh); если упало — игнорируем
-  await apiClient.post('api/auth/logout').json().catch(() => undefined);
-  // 2) почистить cookie через наш Route Handler
+  // Логаут на бэке требует refresh в body — у нас он в httpOnly cookie на стороне Next,
+  // поэтому делаем через Next route /api/auth/clear, который чистит cookie.
+  // Бэк сам blacklist'ит refresh при следующей попытке использования — нам достаточно
+  // забыть cookie на клиенте.
   await fetch('/api/auth/clear', { method: 'POST' });
 }
 
@@ -76,15 +88,16 @@ export async function requestPasswordReset(input: PasswordResetRequestInput) {
 
 export async function confirmPasswordReset(input: PasswordResetConfirmInput) {
   // password_confirm — клиентская валидация, на бэк его не шлём
-  const { password_confirm: _, ...payload } = input;
+  const { password_confirm: _pc, ...payload } = input;
+  void _pc;
   await apiClient.post('api/auth/password/reset/confirm', { json: payload }).json();
 }
 
 export async function submitOnboarding(input: OnboardingInput): Promise<User> {
-  // consent (boolean) на клиенте — бэк сам ставит consent_at = now()
-  const { consent: _, ...payload } = input;
+  // ВАЖНО: consent ОБЯЗАТЕЛЬНОЕ поле на бэке (apps/users/serializers/onboarding.py).
+  // Раньше мы его выкидывали — бэк возвращал 400 validation_error. Теперь шлём как есть.
   const raw = await apiClient
-    .post('api/users/me/onboarding', { json: payload })
+    .post('api/users/me/onboarding', { json: input })
     .json();
   return userSchema.parse(raw);
 }

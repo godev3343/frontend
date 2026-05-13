@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useEventDetail } from "@/features/events/hooks/use-event-detail";
 import { VIBE_COLORS } from "@/features/map/lib/vibe-colors";
 
-import { RsvpButtons } from "./rsvp-buttons";
+import { RsvpButtonsGated as RsvpButtons } from "./rsvp-buttons-gated";
 
 interface Props {
   eventId: string;

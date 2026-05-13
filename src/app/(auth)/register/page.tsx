@@ -13,12 +13,22 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { register as registerApi, requestEmailVerification } from '@/features/auth/api';
 import { type RegisterInput, registerSchema } from '@/features/auth/schemas';
-import { useAuthStore } from '@/features/auth/store';
 import { extractError } from '@/lib/api/client';
 
+/**
+ * Регистрация → подтверждение email → логин.
+ *
+ * Бэк (apps/users/views/register.py::RegisterView) на POST /api/auth/register
+ * возвращает ТОЛЬКО {detail: "..."} — без токенов. Юзер обязан подтвердить
+ * email (POST /api/auth/email/verify/confirm), и только после этого
+ * залогиниться через POST /api/auth/login.
+ *
+ * Поэтому здесь больше НЕТ setAccessToken — просто отправляем код и редиректим
+ * на /verify-email. Если код-отправка упала по rate-limit или другой причине —
+ * не блокируем юзера, он всегда может запросить код повторно с /verify-email.
+ */
 export default function RegisterPage() {
   const router = useRouter();
-  const setAccessToken = useAuthStore((s) => s.setAccessToken);
   const [submitting, setSubmitting] = useState(false);
 
   const form = useForm<RegisterInput>({
@@ -29,9 +39,10 @@ export default function RegisterPage() {
   async function onSubmit(values: RegisterInput) {
     setSubmitting(true);
     try {
-      const { access } = await registerApi(values);
-      setAccessToken(access);
-      // отправляем код на email (не блокируем регистрацию, если упало)
+      await registerApi(values);
+      // Бэк сам шлёт код при регистрации (см. RegisterView.send_email_verification
+      // в AuthService.register). Дублирующий вызов ниже — best effort на случай
+      // если шаг проглотился; rate-limit обрабатывается тихо.
       await requestEmailVerification({ email: values.email }).catch(() => undefined);
       router.replace(`/verify-email?email=${encodeURIComponent(values.email)}`);
     } catch (err) {

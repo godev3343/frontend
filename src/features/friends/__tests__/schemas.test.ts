@@ -2,107 +2,116 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  friendshipSchema,
+  friendListItemSchema,
   paginatedSchema,
   profileEditSchema,
   publicUserSchema,
   userProfileSchema,
 } from "../schemas";
 
+/**
+ * Бэк-shape для public-юзера (apps/social/serializers/...) использует
+ * `public_name` (computed property через source). Фронт нормализует
+ * в `display_name` через transform на границе.
+ *
+ * Аналогично avatar_url: бэк может прислать null или пустую строку —
+ * мы нормализуем в '' (дефолт), потому что UI ожидает строку для <img src>.
+ */
 describe("friends schemas", () => {
-  it("парсит публичного юзера с пустыми полями", () => {
+  it("парсит публичного юзера c public_name → display_name", () => {
     const parsed = publicUserSchema.parse({
-      id: 1,
-      display_name: "Aibek",
+      id: 42,
+      public_name: "Aibek",
       avatar_url: null,
       bio: "",
       points: 0,
     });
     expect(parsed.display_name).toBe("Aibek");
-    expect(parsed.avatar_url).toBeNull();
+    // null → '' через .default('') в схеме
+    expect(parsed.avatar_url).toBe("");
   });
-    it("применяет default к отсутствующему avatar_url", () => {
+
+  it("применяет default к отсутствующему avatar_url", () => {
     const parsed = publicUserSchema.parse({
       id: 1,
-      display_name: "Aibek",
+      public_name: "X",
       bio: "",
       points: 0,
-      // avatar_url не передаём
     });
     expect(parsed.avatar_url).toBe("");
   });
 
-  it("отклоняет UserProfile с невалидным friendship_status", () => {
-    expect(() =>
-      userProfileSchema.parse({
-        id: 1,
-        display_name: "X",
-        avatar_url: "",
-        bio: "",
-        points: 0,
-        friendship_status: "buddy", // невалидный
-        friendship_id: null,
-        friends_count: 0,
-        checkins_count: 0,
-      }),
-    ).toThrow();
+  it("делает fallback на 'none' для невалидного friendship_status", () => {
+    // Бэк отдаёт friendship_status как CharField (annotate'ом), не enum-валидируется.
+    // Если придёт мусор — на фронте делаем fallback 'none', чтобы UI не падал.
+    const parsed = userProfileSchema.parse({
+      id: 1,
+      public_name: "X",
+      avatar_url: null,
+      bio: "",
+      points: 0,
+      friendship_status: "garbage_value",
+      friendship_id: null,
+      friends_count: 0,
+      checkins_count: 0,
+    });
+    expect(parsed.friendship_status).toBe("none");
   });
 
-  it("парсит пагинированный ответ", () => {
-    const result = paginatedSchema(friendshipSchema).parse({
-      next: "http://api/friends?cursor=abc",
+  it("парсит пагинированный ответ списка друзей (плоский User → Friendship)", () => {
+    // GET /api/friends отдаёт FriendListItemSerializer — плоский User.
+    // friendListItemSchema нормализует в Friendship: {id (synthetic), user, status, created_at}.
+    const result = paginatedSchema(friendListItemSchema).parse({
+      count: 1,
+      next: null,
       previous: null,
       results: [
         {
-          id: 10,
-          status: "accepted",
-          created_at: "2025-01-01T00:00:00Z",
-          user: {
-            id: 2,
-            display_name: "Friend",
-            avatar_url: "",
-            bio: "",
-            points: 5,
-          },
+          id: 7,
+          public_name: "Friend",
+          avatar_url: null,
+          bio: "",
+          points: 10,
         },
       ],
     });
     expect(result.results).toHaveLength(1);
     expect(result.results[0]?.user.display_name).toBe("Friend");
+    expect(result.results[0]?.status).toBe("accepted");
+  });
+});
+
+describe("profileEditSchema", () => {
+  it("отклоняет слишком короткое имя", () => {
+    const r = profileEditSchema.safeParse({ display_name: "X", bio: "", avatar_url: "" });
+    expect(r.success).toBe(false);
   });
 
-  describe("profileEditSchema", () => {
-    it("отклоняет слишком короткое имя", () => {
-      const result = profileEditSchema.safeParse({
-        display_name: "a",
-        bio: "",
-      });
-      expect(result.success).toBe(false);
+  it("отклоняет bio > 280 символов", () => {
+    const r = profileEditSchema.safeParse({
+      display_name: "Name",
+      bio: "a".repeat(281),
+      avatar_url: "",
     });
+    expect(r.success).toBe(false);
+  });
 
-    it("отклоняет bio > 280 символов", () => {
-      const result = profileEditSchema.safeParse({
-        display_name: "Valid",
-        bio: "x".repeat(281),
-      });
-      expect(result.success).toBe(false);
+  it("принимает корректные значения", () => {
+    const r = profileEditSchema.parse({
+      display_name: "Aibek G.",
+      bio: "Hello",
+      avatar_url: "",
     });
+    expect(r.display_name).toBe("Aibek G.");
+  });
 
-    it("принимает корректные значения", () => {
-      const result = profileEditSchema.safeParse({
-        display_name: "Aibek Nurlan",
-        bio: "Hello",
-      });
-      expect(result.success).toBe(true);
+  it("тримит пробелы", () => {
+    const r = profileEditSchema.parse({
+      display_name: "  Aibek  ",
+      bio: "  hi  ",
+      avatar_url: "",
     });
-
-    it("тримит пробелы", () => {
-      const result = profileEditSchema.parse({
-        display_name: "  Aibek  ",
-        bio: "  hi  ",
-      });
-      expect(result.display_name).toBe("Aibek");
-      expect(result.bio).toBe("hi");
-    });
+    expect(r.display_name).toBe("Aibek");
+    expect(r.bio).toBe("hi");
   });
 });

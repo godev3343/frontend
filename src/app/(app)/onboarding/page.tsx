@@ -19,14 +19,20 @@ import { onboardingSchema } from '@/features/auth/schemas';
 import { track } from '@/lib/analytics';
 import { extractError } from '@/lib/api/client';
 
-
+/**
+ * Онбординг: первый раз заполняет display_name + bio + consent.
+ *
+ * ВАЖНО:
+ *   - consent ОБЯЗАТЕЛЬНО шлём на бэк (apps/users/serializers/onboarding.py
+ *     требует BooleanField без default). Раньше выкидывали — бэк возвращал 400.
+ *   - Бэк не отдаёт consent_at — проверяем готовность через is_onboarded.
+ */
 export default function OnboardingPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { data: me, isLoading } = useMe();
   const [submitting, setSubmitting] = useState(false);
 
-  // src/app/(app)/onboarding/page.tsx (внутри OnboardingPage)
   const form = useForm<
     z.input<typeof onboardingSchema>,
     unknown,
@@ -42,16 +48,14 @@ export default function OnboardingPage() {
 
   // если уже онбордился — на главную
   useEffect(() => {
-    if (me?.consent_at && me.display_name) router.replace('/');
+    if (me?.is_onboarded) router.replace('/');
   }, [me, router]);
 
-async function onSubmit(values: z.output<typeof onboardingSchema>) {
+  async function onSubmit(values: z.output<typeof onboardingSchema>) {
     setSubmitting(true);
     try {
       const user = await submitOnboarding(values);
       queryClient.setQueryData(ME_QUERY_KEY, user);
-      // signup воронка завершена — отдельное событие от login_completed.
-      // Шлём ДО router.replace, чтобы PostHog успел прокинуть в очередь.
       track('signup_completed');
       router.replace('/');
     } catch (err) {
@@ -107,9 +111,9 @@ async function onSubmit(values: z.output<typeof onboardingSchema>) {
             <Checkbox
               checked={form.watch('consent')}
               onCheckedChange={(v: boolean | 'indeterminate') =>
-              form.setValue('consent', v === true, { shouldValidate: true })
+                form.setValue('consent', v === true, { shouldValidate: true })
               }
-              />
+            />
             <Label htmlFor="consent" className="text-muted-foreground text-xs leading-relaxed">
               Согласен с обработкой персональных данных и Условиями использования
             </Label>

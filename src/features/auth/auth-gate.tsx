@@ -61,22 +61,22 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 /**
  * Сайд-эффект-компонент: как только `useMe()` отдал юзера — дёргаем
  * PostHog identify. Вынесен отдельно, чтобы не делать AuthGate
- * зависимым от useMe (он крутится до момента когда access ещё не
- * установлен, и useMe вернёт data только после).
+ * зависимым от useMe.
  *
- * Идемпотентен: posthog.identify повторно с тем же id — no-op.
- * resetAnalytics на logout вызывается в LogoutButton.
+ * NB: бэк отдаёт `is_onboarded` (boolean), а не `consent_at` (datetime).
+ * has_consent = is_onboarded — потому что онбординг невозможен без consent
+ * (apps/users/serializers/onboarding.py делает consent обязательным).
  */
 function IdentifyOnMe() {
   const { data: me } = useMe();
 
   useEffect(() => {
     if (me?.id) {
-      identify(me.id, {
-        has_consent: Boolean(me.consent_at),
+      identify(String(me.id), {
+        has_consent: me.is_onboarded,
       });
     }
-  }, [me?.id, me?.consent_at]);
+  }, [me?.id, me?.is_onboarded]);
 
   return null;
 }

@@ -45,3 +45,6 @@ next-env.d.ts
 .env.sentry-build-plugin
 epic*.tar.gz
 MANIFEST.sha256
+test-results/
+playwright-report/
+/playwright/.cache/

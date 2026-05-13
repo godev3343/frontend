@@ -4,7 +4,7 @@
 import { Pencil } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,23 +13,39 @@ import { LogoutButton } from "@/features/auth/logout-button";
 import { MyCheckinsList } from "@/features/checkins/components/my-checkins-list";
 import { ProfileEditSheet } from "@/features/friends/components/profile-edit-sheet";
 import { ProfileHeader } from "@/features/friends/components/profile-header";
+import { env } from "@/lib/env";
 
 export default function ProfilePage() {
-  const { data: me, isPending } = useMe();
+  const { data: me, isUnauthenticated } = useMe();
   const [editOpen, setEditOpen] = useState(false);
   const router = useRouter();
 
-  if (isPending) {
+  /**
+   * Редиректим ТОЛЬКО когда точно знаем, что юзер не залогинен:
+   *   - нет access токена в zustand, ИЛИ
+   *   - запрос /api/users/me упал с ошибкой (401/etc).
+   *
+   * Промежуточное состояние "токен есть, запрос в полёте" НЕ
+   * триггерит редирект — иначе словим false-positive сразу после
+   * клика на /profile (наблюдалось в проде: useMe возвращает
+   * isPending=false + data=undefined пока accessToken только что
+   * появился и запрос ещё не успел запуститься).
+   */
+  useEffect(() => {
+    if (isUnauthenticated) {
+      router.replace("/login");
+    }
+  }, [isUnauthenticated, router]);
+
+  // Пока юзер ещё не загружен (запрос в полёте) — показываем skeleton.
+  // me === undefined в норме означает "грузим", а unauthenticated мы уже
+  // обработали выше.
+  if (!me) {
     return (
       <div className="container mx-auto max-w-3xl p-4">
         <Skeleton className="h-48 w-full rounded-2xl" />
       </div>
     );
-  }
-
-  if (!me) {
-    router.replace("/login");
-    return null;
   }
 
   return (
@@ -39,18 +55,20 @@ export default function ProfilePage() {
         avatarUrl={me.avatar_url ?? ""}
         bio={me.bio}
         stats={{
-          friends: 0, // подтянем из /api/users/me когда бэк добавит, либо отдельным запросом
-          checkins: 0,
+          friends: me.friends_count,
+          checkins: me.checkins_count,
           points: me.points,
         }}
         animatePoints
         pointsExtra={
-          <Link
-            href="/profile/points"
-            className="text-xs text-purple-400 underline-offset-2 hover:underline focus-visible:underline"
-          >
-            История
-          </Link>
+          env.NEXT_PUBLIC_FEATURE_POINTS_HISTORY ? (
+            <Link
+              href="/profile/points"
+              className="text-xs text-purple-400 underline-offset-2 hover:underline focus-visible:underline"
+            >
+              История
+            </Link>
+          ) : null
         }
         action={
           <div className="flex gap-2">

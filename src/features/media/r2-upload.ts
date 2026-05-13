@@ -1,6 +1,6 @@
 // src/features/media/r2-upload.ts
 // Прямой PUT в R2 по presigned URL. Без auth-заголовков — подпись в URL.
-// XHR, потому что нужен upload progress.
+// XHR, потому что нужен upload progress (fetch его не даёт).
 
 export type R2UploadProgress = (loaded: number, total: number) => void;
 
@@ -8,8 +8,6 @@ export type R2UploadOptions = {
   upload_url: string;
   file: File;
   content_type: string;
-  // POST multipart fallback (если бэк вернул fields)
-  fields?: Record<string, string>;
   signal?: AbortSignal;
   on_progress?: R2UploadProgress;
 };
@@ -24,20 +22,18 @@ export class R2UploadError extends Error {
   }
 }
 
+/**
+ * R2 presigned URL — SigV4 на PUT. Content-Type ОБЯЗАН совпадать ровно с тем,
+ * который заявлен в presign-запросе на бэк, иначе подпись невалидна → 403.
+ */
 export function uploadToR2(opts: R2UploadOptions): Promise<void> {
-  const { upload_url, file, content_type, fields, signal, on_progress } = opts;
+  const { upload_url, file, content_type, signal, on_progress } = opts;
 
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    const is_multipart = fields && Object.keys(fields).length > 0;
 
-    xhr.open(is_multipart ? "POST" : "PUT", upload_url, true);
-
-    if (!is_multipart) {
-      // КРИТИЧНО: Content-Type должен совпадать с тем, что в presign,
-      // иначе SigV4 подпись невалидна.
-      xhr.setRequestHeader("Content-Type", content_type);
-    }
+    xhr.open("PUT", upload_url, true);
+    xhr.setRequestHeader("Content-Type", content_type);
 
     if (signal) {
       if (signal.aborted) {
@@ -58,16 +54,13 @@ export function uploadToR2(opts: R2UploadOptions): Promise<void> {
       if (xhr.status >= 200 && xhr.status < 300) resolve();
       else reject(new R2UploadError(xhr.status, xhr.responseText));
     });
-    xhr.addEventListener("error", () => reject(new R2UploadError(0, "network error")));
-    xhr.addEventListener("abort", () => reject(new DOMException("Aborted", "AbortError")));
+    xhr.addEventListener("error", () =>
+      reject(new R2UploadError(0, "network error — check R2 CORS for PUT + Content-Type")),
+    );
+    xhr.addEventListener("abort", () =>
+      reject(new DOMException("Aborted", "AbortError")),
+    );
 
-    if (is_multipart) {
-      const fd = new FormData();
-      for (const [k, v] of Object.entries(fields!)) fd.append(k, v);
-      fd.append("file", file);
-      xhr.send(fd);
-    } else {
-      xhr.send(file);
-    }
+    xhr.send(file);
   });
 }

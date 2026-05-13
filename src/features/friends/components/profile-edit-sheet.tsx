@@ -2,6 +2,7 @@
 "use client";
 
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
+import { useQueryClient } from "@tanstack/react-query";
 import { Controller, useForm } from "react-hook-form";
 import type { z } from "zod/v4";
 
@@ -17,6 +18,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
+import { ME_QUERY_KEY } from "@/features/auth/hooks";
 import { ImagePicker } from "@/features/media";
 
 import { useUpdateMe } from "../hooks";
@@ -49,6 +51,7 @@ export function ProfileEditSheet({ open, onOpenChange, defaultValues }: Props) {
       onSuccess: () => onOpenChange(false),
     });
   }
+  const queryClient = useQueryClient();
 
   const busy = updateMe.isPending || isSubmitting;
 
@@ -72,8 +75,13 @@ export function ProfileEditSheet({ open, onOpenChange, defaultValues }: Props) {
                 label="Аватар"
                 rounded
                 value={field.value ?? ""}
-                onChange={(public_url) => field.onChange(public_url)}
-              />
+                onChange={(public_url) => {
+                  field.onChange(public_url);
+    // Бэк привязал avatar_asset через media-сигнал на confirm.
+    // Инвалидируем me чтобы /profile перечитал свежий avatar_url.
+                  queryClient.invalidateQueries({ queryKey: ME_QUERY_KEY });
+  }}              
+  />
             )}
           />
 

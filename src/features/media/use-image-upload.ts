@@ -4,7 +4,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { confirmUpload, fetchUploadStatus, requestPresign } from "./api";
+import { confirmUpload, fetchAssetStatus, requestPresign } from "./api";
 import { compressImage } from "./compress";
 import { mediaKeys } from "./query-keys";
 import { uploadToR2 } from "./r2-upload";
@@ -27,7 +27,11 @@ export type UploadPhase =
   | "error";
 
 export type UploadResult = {
+  /** Числовой ID MediaAsset на бэке — нужен для confirm и для статус-поллинга. */
+  asset_id: number;
+  /** R2-ключ оригинала (на бэке `key_original` в MediaAsset). Используем как photo_key для чек-инов. */
   key: string;
+  /** Публичный URL картинки (feed-размер если processed, original в pending). */
   public_url: string;
   status: UploadStatus;
 };
@@ -35,9 +39,7 @@ export type UploadResult = {
 export type UseImageUploadOptions = {
   purpose: UploadPurpose;
   enable_compression?: boolean;
-  // Тайм-аут поллинга в секундах (по умолчанию 30).
   polling_timeout_sec?: number;
-  // Интервал поллинга в мс (по умолчанию 1500).
   polling_interval_ms?: number;
   on_success?: (result: UploadResult) => void;
 };
@@ -85,39 +87,40 @@ export function useImageUpload(opts: UseImageUploadOptions): UseImageUploadRetur
     setPhase("idle");
   }, []);
 
-  // Поллинг статуса, если confirm вернул "pending"
+  // Поллинг статуса через GET /api/media/{asset_id}
   const should_poll = phase === "processing" && result !== null;
   useQuery({
-    queryKey: result ? mediaKeys.status(result.key) : ["media", "status", "noop"],
+    queryKey: result ? mediaKeys.status(String(result.asset_id)) : ["media", "status", "noop"],
     queryFn: async () => {
       if (!result) return null;
-      const status = await fetchUploadStatus(result.key);
+      const asset = await fetchAssetStatus(result.asset_id);
 
       const elapsed_ms = polling_started_at_ref.current
         ? Date.now() - polling_started_at_ref.current
         : 0;
       const timed_out = elapsed_ms > polling_timeout_sec * 1000;
 
-      if (status.status === "ready" && status.public_url) {
+      if (asset.status === "ready") {
         const next: UploadResult = {
+          asset_id: result.asset_id,
           key: result.key,
-          public_url: status.public_url,
+          public_url: asset.public_url,
           status: "ready",
         };
         setResult(next);
         setPhase("ready");
         on_success?.(next);
-      } else if (status.status === "failed") {
+      } else if (asset.status === "failed") {
         setPhase("error");
-        setError("Не удалось обработать изображение.");
+        setError(asset.failure_reason ?? "Не удалось обработать изображение.");
       } else if (timed_out) {
-        // Превышен тайм-аут — считаем готовым с тем, что есть.
-        // Если бэк не подтвердил — даём пользователю работать с предполагаемым URL.
+        // Превышен тайм-аут — отдаём то что есть. Юзер увидит оригинал,
+        // feed-вариант появится при следующем рефреше.
         setPhase("ready");
         on_success?.(result);
       }
 
-      return status;
+      return asset;
     },
     enabled: should_poll,
     refetchInterval: should_poll ? polling_interval_ms : false,
@@ -133,14 +136,14 @@ export function useImageUpload(opts: UseImageUploadOptions): UseImageUploadRetur
       abort_ref.current = controller;
 
       try {
-        // Валидация (до сжатия — сжатие может только уменьшить, но тип не сменит)
+        // Валидация
         const validation = validateImageFile(file_in);
         if (validation) {
           setPhase("error");
           setError(
             validation.code === "too_large"
               ? "Файл больше 10 МБ."
-              : "Только JPEG, PNG или WebP.",
+              : "Только JPEG, PNG, WebP или HEIC.",
           );
           return null;
         }
@@ -152,7 +155,7 @@ export function useImageUpload(opts: UseImageUploadOptions): UseImageUploadRetur
           try {
             file = await compressImage(file_in);
           } catch {
-            // Сжатие — best effort, при ошибке грузим оригинал.
+            // Сжатие — best effort, при ошибке грузим оригинал
             file = file_in;
           }
         }
@@ -164,28 +167,28 @@ export function useImageUpload(opts: UseImageUploadOptions): UseImageUploadRetur
         const presign = await requestPresign({
           purpose,
           content_type,
-          size: file.size,
+          content_length: file.size,
         });
 
-        // 3. PUT в R2
+        // 3. PUT в R2 (без auth-заголовков — подпись в URL)
         setPhase("uploading");
         setProgress(0);
         await uploadToR2({
           upload_url: presign.upload_url,
           file,
           content_type,
-          fields: presign.fields,
           signal: controller.signal,
           on_progress: (loaded, total) => {
             setProgress(total > 0 ? loaded / total : 0);
           },
         });
 
-        // 4. Confirm
+        // 4. Confirm — по asset_id, НЕ по key
         setPhase("confirming");
-        const confirmed = await confirmUpload(presign.key);
+        const confirmed = await confirmUpload(presign.asset_id);
         const initial: UploadResult = {
-          key: confirmed.key,
+          asset_id: presign.asset_id,
+          key: presign.key,
           public_url: confirmed.public_url,
           status: confirmed.status,
         };
@@ -198,11 +201,11 @@ export function useImageUpload(opts: UseImageUploadOptions): UseImageUploadRetur
         }
         if (confirmed.status === "failed") {
           setPhase("error");
-          setError("Сервер отклонил файл.");
+          setError(confirmed.failure_reason ?? "Сервер отклонил файл.");
           return null;
         }
 
-        // pending → поллинг через useQuery
+        // pending → поллинг
         polling_started_at_ref.current = Date.now();
         setPhase("processing");
         return initial;
