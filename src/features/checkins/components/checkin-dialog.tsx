@@ -25,6 +25,7 @@ import {
 } from "@/features/map/lib/distance";
 import type { PlaceDetail } from "@/features/map/schemas";
 import { ImagePicker } from "@/features/media/image-picker";
+import type { UploadPhase } from "@/features/media/use-image-upload";
 
 import { useCreateCheckin } from "../hooks/use-create-checkin";
 
@@ -41,6 +42,21 @@ type Props = {
   onSuccess?: () => void;
 };
 
+/**
+ * Фазы, при которых сабмит чек-ина должен быть заблокирован.
+ * Бэк отбивает 400 photo_not_ready, если photo_key передан, но MediaAsset
+ * на бэке ещё processing/uploading. Безопасно сабмитить только при idle/ready/error.
+ */
+function isPhotoBusy(phase: UploadPhase): boolean {
+  return (
+    phase === "compressing" ||
+    phase === "presigning" ||
+    phase === "uploading" ||
+    phase === "confirming" ||
+    phase === "processing"
+  );
+}
+
 export function CheckinDialog({ place, open, onOpenChange, onSuccess }: Props) {
   const { status, coords, request } = useUserLocation({
     strict: true,
@@ -49,6 +65,7 @@ export function CheckinDialog({ place, open, onOpenChange, onSuccess }: Props) {
 
   const [photoUrl, setPhotoUrl] = useState<string>("");
   const [photoKey, setPhotoKey] = useState<string | null>(null);
+  const [photoPhase, setPhotoPhase] = useState<UploadPhase>("idle");
 
   const form = useForm<
     z.input<typeof formSchema>,
@@ -70,6 +87,7 @@ export function CheckinDialog({ place, open, onOpenChange, onSuccess }: Props) {
       form.reset({ comment: "" });
       setPhotoUrl("");
       setPhotoKey(null);
+      setPhotoPhase("idle");
     }
     onOpenChange(next);
   };
@@ -98,6 +116,12 @@ export function CheckinDialog({ place, open, onOpenChange, onSuccess }: Props) {
       toast.error("Подойдите ближе к месту (≤100м)");
       return;
     }
+    // Защита от race: если фото всё ещё обрабатывается — не шлём.
+    // Кнопка disabled, но это дополнительная защита (keyboard submit / a11y).
+    if (isPhotoBusy(photoPhase)) {
+      toast.error("Дождитесь окончания обработки фото");
+      return;
+    }
 
     const comment = (values.comment ?? "").trim();
 
@@ -118,11 +142,13 @@ export function CheckinDialog({ place, open, onOpenChange, onSuccess }: Props) {
     );
   };
 
+  const photoBusy = isPhotoBusy(photoPhase);
   const submitDisabled =
     createCheckinMut.isPending ||
     status === "requesting" ||
     !coords ||
-    !isInRange;
+    !isInRange ||
+    photoBusy;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -147,6 +173,7 @@ export function CheckinDialog({ place, open, onOpenChange, onSuccess }: Props) {
                 setPhotoUrl(url);
                 setPhotoKey(key);
               }}
+              on_phase_change={setPhotoPhase}
               allow_camera
               enable_compression
               label="Добавить фото"
@@ -170,6 +197,12 @@ export function CheckinDialog({ place, open, onOpenChange, onSuccess }: Props) {
             isInRange={isInRange}
             onRetry={request}
           />
+
+          {photoBusy ? (
+            <p className="text-muted-foreground text-xs">
+              Дождитесь окончания обработки фото перед чек-ином.
+            </p>
+          ) : null}
 
           <DialogFooter>
             <Button

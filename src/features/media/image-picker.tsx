@@ -17,6 +17,12 @@ type ImagePickerProps = {
   value: string;
   /** Передаёт public_url (или "" при удалении) и key (или null). */
   onChange: (public_url: string, key: string | null) => void;
+  /**
+   * Колбэк фазы загрузки фото. Внешний компонент (например форма чек-ина)
+   * использует это чтобы блокировать сабмит пока фото в работе —
+   * иначе бэк отбивает 400 photo_not_ready.
+   */
+  on_phase_change?: (phase: UploadPhase) => void;
   /** Включает capture="environment" для мобильных */
   allow_camera?: boolean;
   /** Использовать клиентский ресайз */
@@ -49,6 +55,7 @@ export function ImagePicker({
   purpose,
   value,
   onChange,
+  on_phase_change,
   allow_camera = false,
   enable_compression = true,
   className,
@@ -68,6 +75,12 @@ export function ImagePicker({
       toast.success("Фото загружено");
     },
   });
+
+  // Пробрасываем фазу наружу при каждом её изменении.
+  // Внешняя форма использует это, чтобы блокировать сабмит пока фото грузится.
+  useEffect(() => {
+    on_phase_change?.(phase);
+  }, [phase, on_phase_change]);
 
   useEffect(() => {
     return () => {
