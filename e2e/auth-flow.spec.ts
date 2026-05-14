@@ -66,13 +66,18 @@ test('user can reach login and submit credentials', async ({ page }) => {
   // и возвращает access. На бэк он стучится изнутри Node, page.route его не перехватит,
   // если запрос идёт сервер-сайд. Но в нашем случае persistTokens() вызывается с клиента,
   // так что мок сработает.
-  await page.route('**/api/auth/set-tokens', async (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({ access: 'fake-access' }),
-    }),
-  );
+ await page.route('**/api/auth/set-tokens', async (route) =>
+  route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    headers: {
+      'Set-Cookie': 'refresh_token=fake-refresh; Path=/; HttpOnly; SameSite=Lax',
+    },
+    body: JSON.stringify({ access: 'fake-access' }),
+  }),
+);
+
+
 
   // 1) Открыть /, без auth → редирект на /login
   await page.goto('/');
@@ -98,6 +103,15 @@ test('user can reach login and submit credentials', async ({ page }) => {
     ),
     page.getByRole('button', { name: /войти|login|вход/i }).first().click(),
   ]);
+
+  await page.context().addCookies([{
+  name: 'refresh_token',
+  value: 'fake-refresh',
+  domain: 'localhost',
+  path: '/',
+  httpOnly: true,
+  sameSite: 'Lax',
+}]);
 
   // 4) router.replace('/') → попадаем в (app)/, OnboardingGate видит
   //    is_onboarded: false → редирект на /onboarding
