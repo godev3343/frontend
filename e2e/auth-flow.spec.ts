@@ -17,49 +17,23 @@ import { expect, test } from '@playwright/test';
  *  - кросс-браузер (chromium-only в config)
  */
 test('user can reach login and submit credentials', async ({ page }) => {
-  // Мокаем эндпоинты до навигации, чтобы AuthGate с самого начала видел 401
+  // Все моки ставим ДО первой навигации, чтобы не было race с монтированием AuthGate.
+  // /me — переключаемый: до логина 401, после — юзер без онбординга.
+  let loggedIn = false;
+
   await page.route('**/api/auth/refresh', async (route) =>
-    route.fulfill({ status: 401, body: '{}' }),
+    route.fulfill({ status: 401, contentType: 'application/json', body: '{}' }),
   );
 
-  await page.route('**/api/users/me', async (route) =>
-    route.fulfill({ status: 401, body: '{}' }),
-  );
-
-  // 1) Открыть /, без auth → редирект на /login (или сразу /login если AuthGate так настроен)
-  await page.goto('/');
-  await expect(page).toHaveURL(/\/login/, { timeout: 10_000 });
-
-  // 2) Форма логина рендерится
-  const emailField = page.getByLabel(/email|почт/i).first();
-  await expect(emailField).toBeVisible();
-
-  // 3) Мокаем успешный login → возвращаем токены, потом me с consent_at = null
-  await page.route('**/api/auth/login', async (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        access: 'fake-access',
-        refresh: 'fake-refresh',
-      }),
-    }),
-  );
-
-  // После login next-route-handler set-tokens вызывается — мокаем и его
-  await page.route('**/api/auth/set-tokens', async (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({ access: 'fake-access' }),
-    }),
-  );
-
-  // После set-tokens AuthGate перевызовет /api/users/me — отдадим юзера без consent_at
-  // (значит он новый → редирект на /onboarding)
-  await page.unroute('**/api/users/me');
-  await page.route('**/api/users/me', async (route) =>
-    route.fulfill({
+  await page.route('**/api/users/me', async (route) => {
+    if (!loggedIn) {
+      return route.fulfill({
+        status: 401,
+        contentType: 'application/json',
+        body: '{}',
+      });
+    }
+    return route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify({
@@ -68,24 +42,65 @@ test('user can reach login and submit credentials', async ({ page }) => {
         display_name: '',
         bio: '',
         avatar_url: null,
+        is_onboarded: false, // OnboardingGate смотрит сюда — без этого поля гард не сработает
         consent_at: null,
         points: 0,
         created_at: new Date().toISOString(),
       }),
+    });
+  });
+
+  await page.route('**/api/auth/login', async (route) => {
+    loggedIn = true; // следующий /me уже отдаст залогиненного юзера без онбординга
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        access: 'fake-access',
+        refresh: 'fake-refresh',
+      }),
+    });
+  });
+
+  // /api/auth/set-tokens — Next route handler, который кладёт refresh в httpOnly cookie
+  // и возвращает access. На бэк он стучится изнутри Node, page.route его не перехватит,
+  // если запрос идёт сервер-сайд. Но в нашем случае persistTokens() вызывается с клиента,
+  // так что мок сработает.
+  await page.route('**/api/auth/set-tokens', async (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ access: 'fake-access' }),
     }),
   );
 
-  // Вводим email/password — селекторы могут отличаться, ищем по типу поля
+  // 1) Открыть /, без auth → редирект на /login
+  await page.goto('/');
+  await expect(page).toHaveURL(/\/login/, { timeout: 10_000 });
+
+  // 2) Форма логина рендерится
+  const emailField = page.getByLabel(/email|почт/i).first();
+  await expect(emailField).toBeVisible();
+
   await emailField.fill('test@example.com');
-  const passwordField = page
-    .locator('input[type="password"]')
-    .first();
-  await passwordField.fill('SuperSecret123!');
+  await page.locator('input[type="password"]').first().fill('SuperSecret123!');
 
-  // Submit — кнопка с текстом «Войти» или «Login», ищем по роли
-  await page.getByRole('button', { name: /войти|login|вход/i }).first().click();
+  // 3) Сабмит. Ждём что login и set-tokens реально отстрелили,
+  //    чтобы URL-проверка дальше не гонялась с зависшим запросом.
+  await Promise.all([
+    page.waitForResponse(
+      (r) => r.url().includes('/api/auth/login') && r.ok(),
+      { timeout: 10_000 },
+    ),
+    page.waitForResponse(
+      (r) => r.url().includes('/api/auth/set-tokens') && r.ok(),
+      { timeout: 10_000 },
+    ),
+    page.getByRole('button', { name: /войти|login|вход/i }).first().click(),
+  ]);
 
-  // 4) Должны попасть на /onboarding
+  // 4) router.replace('/') → попадаем в (app)/, OnboardingGate видит
+  //    is_onboarded: false → редирект на /onboarding
   await expect(page).toHaveURL(/\/onboarding/, { timeout: 10_000 });
 
   // Форма онбординга

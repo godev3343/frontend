@@ -58,7 +58,7 @@ export function useImageUpload(opts: UseImageUploadOptions): UseImageUploadRetur
   const {
     purpose,
     enable_compression = true,
-    polling_timeout_sec = 30,
+    polling_timeout_sec = 60,
     polling_interval_ms = 1500,
     on_success,
   } = opts;
@@ -114,10 +114,11 @@ export function useImageUpload(opts: UseImageUploadOptions): UseImageUploadRetur
         setPhase("error");
         setError(asset.failure_reason ?? "Не удалось обработать изображение.");
       } else if (timed_out) {
-        // Превышен тайм-аут — отдаём то что есть. Юзер увидит оригинал,
-        // feed-вариант появится при следующем рефреше.
-        setPhase("ready");
-        on_success?.(result);
+        // Бэк отказывается принимать чек-ин с photo_key пока asset не ready
+        // (photo_not_ready), поэтому таймаут — это явная ошибка, не "ок".
+        // Юзер сможет попробовать загрузить ещё раз.
+        setPhase("error");
+        setError("Обработка фото заняла слишком много времени. Попробуйте ещё раз.");
       }
 
       return asset;

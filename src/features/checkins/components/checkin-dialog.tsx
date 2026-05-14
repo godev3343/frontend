@@ -26,6 +26,7 @@ import {
 import type { PlaceDetail } from "@/features/map/schemas";
 import { ImagePicker } from "@/features/media/image-picker";
 import type { UploadPhase } from "@/features/media/use-image-upload";
+import { getApiErrorCode, getApiErrorMessage } from "@/lib/errors";
 
 import { useCreateCheckin } from "../hooks/use-create-checkin";
 
@@ -138,17 +139,30 @@ export function CheckinDialog({ place, open, onOpenChange, onSuccess }: Props) {
           handleOpenChange(false);
           onSuccess?.();
         },
+       onError: async (err) => {
+      const code = await getApiErrorCode(err);
+      if (code === "photo_not_ready") {
+        toast.error(
+          "Фото ещё обрабатывается на сервере. Подождите пару секунд и попробуйте снова.",
+        );
+        return;
+      }
+      toast.error(await getApiErrorMessage(err));
+    },
       },
     );
   };
 
   const photoBusy = isPhotoBusy(photoPhase);
+  const photoSelectedButNotReady = photoKey !== null && photoPhase !== "ready" && photoPhase !== "idle";
   const submitDisabled =
     createCheckinMut.isPending ||
     status === "requesting" ||
     !coords ||
     !isInRange ||
-    photoBusy;
+    photoBusy ||
+    photoSelectedButNotReady;
+
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -209,7 +223,6 @@ export function CheckinDialog({ place, open, onOpenChange, onSuccess }: Props) {
               type="button"
               variant="ghost"
               onClick={() => handleOpenChange(false)}
-              disabled={createCheckinMut.isPending}
             >
               Отмена
             </Button>
