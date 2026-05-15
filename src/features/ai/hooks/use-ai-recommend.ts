@@ -3,6 +3,7 @@
 
 import { useMutation } from "@tanstack/react-query";
 import type { HTTPError } from "ky";
+import { ZodError } from "zod/v4";
 
 import { track } from "@/lib/analytics";
 
@@ -25,7 +26,15 @@ function parseIntStrict(s: string | null): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+
+
 async function mapError(e: unknown): Promise<AiError> {
+  if (e instanceof ZodError) {
+    return {
+      kind: "model_bad_output",
+      message: "AI ответил странно. Попробуйте переформулировать запрос.",
+    };
+  }
   if (!isHttpError(e)) {
     const msg = e instanceof Error ? e.message : "";
     if (/timeout/i.test(msg)) {

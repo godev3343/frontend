@@ -62,7 +62,7 @@ const eventPlaceMiniSchema = z
     id: String(d.id),
     name: d.name,
     // дефолты чтобы UI код, ожидающий PlaceMarker shape, не падал
-    location: { lat: 0, lng: 0 },
+    location: null as { lat: number; lng: number } | null,
     primary_vibe: 'calm' as const,
     category: null as string | null,
     thumb_url: null as string | null,

@@ -8,13 +8,18 @@ import {
 } from "../schemas";
 
 describe("pointsReasonSchema", () => {
-  it("принимает известные reason", () => {
-    for (const r of ["signup", "checkin", "first_checkin", "referral"]) {
+  it("принимает все reason'ы из бэка", () => {
+    for (const r of ["checkin", "first_checkin", "friend_added"]) {
       expect(pointsReasonSchema.parse(r)).toBe(r);
     }
   });
 
-  it("падает на неизвестном reason", () => {
+  it("падает на удалённых reason'ах (signup/referral вырезаны в EPIC 9)", () => {
+    expect(() => pointsReasonSchema.parse("signup")).toThrow();
+    expect(() => pointsReasonSchema.parse("referral")).toThrow();
+  });
+
+  it("падает на полностью неизвестном reason", () => {
     expect(() => pointsReasonSchema.parse("ufo_landing")).toThrow();
   });
 });
@@ -35,13 +40,18 @@ describe("pointsTransactionSchema", () => {
     expect(tx.reason).toBe("checkin");
   });
 
-  it("ref_id может быть null (например для signup)", () => {
+  it("парсит friend_added (с ref_type=friendship)", () => {
     const tx = pointsTransactionSchema.parse({
       ...base,
-      reason: "signup",
-      ref_type: "",
-      ref_id: null,
+      reason: "friend_added",
+      ref_type: "friendship",
+      ref_id: 4,
     });
+    expect(tx.reason).toBe("friend_added");
+  });
+
+  it("ref_id может быть null", () => {
+    const tx = pointsTransactionSchema.parse({ ...base, ref_id: null });
     expect(tx.ref_id).toBeNull();
   });
 

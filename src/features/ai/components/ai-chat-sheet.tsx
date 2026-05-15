@@ -62,7 +62,7 @@ export function AiChatSheet({ open, onOpenChange }: Props) {
           {
             id: genId(),
             role: "assistant",
-            recommendations: data.recommendations,
+            recommendations: data.items,
           },
         ]);
       },

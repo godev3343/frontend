@@ -21,7 +21,7 @@ export function EventMapMarker({ event }: Props) {
   const router = useRouter();
 
   const coords = event.place?.location ?? event.location;
-  if (!coords) return null;
+  if (!coords || (coords.lat === 0 && coords.lng === 0)) return null;
 
   return (
     <Marker

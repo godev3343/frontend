@@ -25,70 +25,65 @@ describe("aiRequestSchema", () => {
 });
 
 describe("aiRecommendationSchema", () => {
-  it("parses full payload", () => {
+  it("парсит реальный ответ бэка и нормализует place_id в string", () => {
     const data = {
-      place_id: "place_abc",
-      reasoning: "Тихо и уютно.",
-      vibe_match: "calm",
+      place_id: 90,
+      name: "Astana Opera",
+      reasoning: "Классическая музыка и оперные постановки.",
+      vibe_match: ["musical", "calm", "romantic"],
     };
-    expect(aiRecommendationSchema.parse(data)).toEqual(data);
+    const parsed = aiRecommendationSchema.parse(data);
+    expect(parsed.place_id).toBe("90");
+    expect(parsed.name).toBe("Astana Opera");
+    expect(parsed.vibe_match).toBe("musical"); // primary
+    expect(parsed.vibe_match_all).toEqual(["musical", "calm", "romantic"]);
   });
 
-  it("defaults vibe_match to null when omitted", () => {
-    const data = { place_id: "place_abc", reasoning: "ok" };
+  it("vibe_match = null если массив пустой", () => {
+    const data = { place_id: 1, name: "X", reasoning: "ok", vibe_match: [] };
     expect(aiRecommendationSchema.parse(data).vibe_match).toBeNull();
   });
 
-  it("accepts vibe_match: null explicitly", () => {
-    const data = { place_id: "place_abc", reasoning: "ok", vibe_match: null };
-    expect(aiRecommendationSchema.parse(data).vibe_match).toBeNull();
+  it("vibe_match по умолчанию [] если ключа нет", () => {
+    const data = { place_id: 1, name: "X", reasoning: "ok" };
+    const parsed = aiRecommendationSchema.parse(data);
+    expect(parsed.vibe_match).toBeNull();
+    expect(parsed.vibe_match_all).toEqual([]);
   });
 
-  it("rejects unknown vibe", () => {
+  it("фильтрует неизвестные вайбы", () => {
     const data = {
-      place_id: "place_abc",
+      place_id: 1,
+      name: "X",
       reasoning: "ok",
-      vibe_match: "spooky",
+      vibe_match: ["spooky", "calm", "made_up"],
     };
-    expect(aiRecommendationSchema.safeParse(data).success).toBe(false);
-  });
-
-  it("rejects empty place_id", () => {
-    const data = { place_id: "", reasoning: "ok" };
-    expect(aiRecommendationSchema.safeParse(data).success).toBe(false);
+    expect(aiRecommendationSchema.parse(data).vibe_match).toBe("calm");
   });
 
   it("rejects empty reasoning", () => {
-    const data = { place_id: "p1", reasoning: "" };
+    const data = { place_id: 1, name: "X", reasoning: "", vibe_match: [] };
     expect(aiRecommendationSchema.safeParse(data).success).toBe(false);
   });
 });
 
 describe("aiResponseSchema", () => {
-  it("parses a typical response", () => {
+  it("парсит ответ с items + request_id", () => {
     const data = {
-      recommendations: [
-        { place_id: "p1", reasoning: "r1", vibe_match: "calm" },
-        { place_id: "p2", reasoning: "r2", vibe_match: null },
+      items: [
+        { place_id: 90, name: "Opera", reasoning: "r1", vibe_match: ["calm"] },
+        { place_id: 85, name: "Palace", reasoning: "r2", vibe_match: [] },
       ],
+      request_id: 6,
     };
-    expect(aiResponseSchema.parse(data).recommendations).toHaveLength(2);
+    const parsed = aiResponseSchema.parse(data);
+    expect(parsed.items).toHaveLength(2);
+    expect(parsed.request_id).toBe(6);
   });
 
-  it("accepts empty recommendations list", () => {
+  it("принимает пустой items", () => {
     expect(
-      aiResponseSchema.parse({ recommendations: [] }).recommendations,
+      aiResponseSchema.parse({ items: [], request_id: 1 }).items,
     ).toEqual([]);
-  });
-
-  it("rejects more than 10 recommendations", () => {
-    const tooMany = Array.from({ length: 11 }, (_, i) => ({
-      place_id: `p${i}`,
-      reasoning: "r",
-      vibe_match: null,
-    }));
-    expect(
-      aiResponseSchema.safeParse({ recommendations: tooMany }).success,
-    ).toBe(false);
   });
 });

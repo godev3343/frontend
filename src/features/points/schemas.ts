@@ -7,10 +7,9 @@ import { z } from "zod/v4";
  * и это правильно: фронт должен явно решить как его показать.
  */
 export const pointsReasonSchema = z.enum([
-  "signup",
   "checkin",
   "first_checkin",
-  "referral",
+  "friend_added"
 ]);
 export type PointsReason = z.infer<typeof pointsReasonSchema>;
 
