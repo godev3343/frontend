@@ -1,6 +1,7 @@
 // src/features/media/schemas.ts
 import { z } from "zod/v4";
 
+
 /**
  * Бэк (apps/media/serializers/presign.py):
  *
@@ -18,7 +19,7 @@ import { z } from "zod/v4";
  * Status:  GET /api/media/{asset_id} → MediaAsset (тот же shape)
  */
 
-export const uploadPurposeSchema = z.enum(["avatar", "checkin", "place"]);
+export const uploadPurposeSchema = z.enum(["avatar", "checkin", "place", "review"]);
 export type UploadPurpose = z.infer<typeof uploadPurposeSchema>;
 
 // HEIC/HEIF от iOS бэк принимает и конвертирует в WebP в Celery-таске

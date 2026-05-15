@@ -22,6 +22,7 @@ import {
 } from "@/features/map/lib/distance";
 import { VIBE_COLORS } from "@/features/map/lib/vibe-colors";
 import type { Location } from "@/features/map/schemas";
+import { ReviewsSection } from "@/features/reviews/components/reviews-section";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -175,6 +176,9 @@ export function PlaceSheet({ placeId, userLocation, onClose }: Props) {
                 >
                   {canCheckin ? "Чек-ин" : "Подойдите ближе для чек-ина"}
                 </Button>
+              </div>
+                            <div className="mt-8">
+                <ReviewsSection placeId={place.id} />
               </div>
             </>
           ) : null}
