@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useEventDetail } from "@/features/events/hooks/use-event-detail";
 import { VIBE_COLORS } from "@/features/map/lib/vibe-colors";
 
-import { RsvpButtonsGated as RsvpButtons } from "./rsvp-buttons-gated";
+import { AttendanceButton } from "./attendance-button";
 
 interface Props {
   eventId: string;
@@ -102,20 +102,25 @@ export function EventDetailView({ eventId }: Props) {
             </Link>
           )}
           <div className="flex items-center gap-2">
-            <Users className="size-4 shrink-0" />
-            <span>
-              {event.attendees_count.going} идут
-              {event.attendees_count.interested > 0 &&
-                ` · ${event.attendees_count.interested} интересно`}
-            </span>
-          </div>
+  <Users className="size-4 shrink-0" />
+  <span>
+    {event.attendees_count.going} идут
+    {event.attendees_count.interested > 0 &&
+      ` · ${event.attendees_count.interested} интересно`}
+    {event.friends_attending.length > 0 &&
+      ` · из друзей: ${event.friends_attending
+        .slice(0, 3)
+        .map((f) => f.user.display_name)
+        .join(", ")}${event.friends_attending.length > 3 ? ` и ещё ${event.friends_attending.length - 3}` : ""}`}
+  </span>
+</div>
           {event.price && (
             <p className="font-medium text-foreground">{event.price}</p>
           )}
         </div>
       </div>
 
-      <RsvpButtons eventId={event.id} current={event.user_rsvp} />
+      <AttendanceButton eventId={event.id} isGoing={event.is_going} />
 
       <section className="flex items-center gap-3 border-y border-border py-3">
         <UserAvatar

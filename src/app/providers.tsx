@@ -7,7 +7,8 @@ import {
   QueryClient,
   QueryClientProvider,
 } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+// TODO: временно отключено. Чтобы вернуть — раскомментируй импорт и компонент ниже.
+// import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useState } from 'react';
 import { Toaster } from 'sonner';
 
@@ -47,7 +48,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <QueryClientProvider client={queryClient}>
         <AuthGate>{children}</AuthGate>
         <Toaster position="top-center" richColors />
-        {process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={false} />}
+        {/* TODO: временно отключено. Чтобы вернуть — раскомментируй импорт выше и строку ниже. */}
+        {/* {process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={false} />} */}
       </QueryClientProvider>
     </GoogleOAuthProvider>
   );

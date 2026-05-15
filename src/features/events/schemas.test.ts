@@ -24,6 +24,14 @@ const baseMarker = {
 };
 
 describe("eventMarkerSchema", () => {
+    it("accepts attendees_count as plain number (backend pre-MVP format)", () => {
+    const ok = { ...baseMarker, attendees_count: 5 };
+    const res = eventMarkerSchema.safeParse(ok);
+    expect(res.success).toBe(true);
+    if (res.success) {
+      expect(res.data.attendees_count).toEqual({ going: 5, interested: 0 });
+    }
+  });
   it("parses minimal event", () => {
     expect(() => eventMarkerSchema.parse(baseMarker)).not.toThrow();
   });

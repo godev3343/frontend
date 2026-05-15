@@ -16,7 +16,6 @@ export function EventCard({ event }: Props) {
   const startDate = new Date(event.starts_at);
   const dateLabel = format(startDate, "d MMMM, HH:mm", { locale: ru });
   const placeLabel = event.place?.name ?? "Локация в описании";
-  const attending = event.attendees_count.going;
 
   return (
     <Link
@@ -73,12 +72,14 @@ export function EventCard({ event }: Props) {
             <MapPin className="size-3.5 shrink-0" />
             <span className="truncate">{placeLabel}</span>
           </div>
-          {attending > 0 && (
-            <div className="flex items-center gap-1.5">
-              <Users className="size-3.5 shrink-0" />
-              <span>{attending} идут</span>
-            </div>
-          )}
+          <div className="flex items-center gap-1.5">
+            <Users className="size-3.5 shrink-0" />
+            <span>
+              {event.attendees_count.going} идут
+              {" · "}
+              {event.attendees_count.interested} интересно
+            </span>
+          </div>
         </div>
       </div>
     </Link>

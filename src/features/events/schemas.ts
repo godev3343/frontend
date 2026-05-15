@@ -52,6 +52,40 @@ export const attendeesCountSchema = z.object({
 });
 export type AttendeesCount = z.infer<typeof attendeesCountSchema>;
 
+/**
+ * Бэк сейчас отдаёт `attendees_count: <number>` (только going-счётчик).
+ * Когда добавят interested — начнёт отдавать объект. Принимаем оба варианта,
+ * нормализуем в {going, interested} чтобы UI не знал о расхождении.
+ */
+const attendeesCountFlexible = z.preprocess(
+  (v) => {
+    if (typeof v === "number") return { going: v, interested: 0 };
+    return v;
+  },
+  attendeesCountSchema,
+);
+
+export const attendingUserSchema = z.object({
+  id: z.union([z.number(), z.string()]).transform((v) => String(v)),
+  display_name: z.string(),
+  avatar_url: z.string().nullable(),
+});
+export type AttendingUser = z.infer<typeof attendingUserSchema>;
+
+export const friendAttendanceSchema = z.object({
+  user: attendingUserSchema,
+  created_at: z.string(),
+});
+export type FriendAttendance = z.infer<typeof friendAttendanceSchema>;
+
+/** Ответ GET/POST/DELETE /api/events/{id}/attendance/ */
+export const attendanceStateSchema = z.object({
+  is_going: z.boolean(),
+  attendees_count: z.number().int().nonnegative(),
+  friends_attending: z.array(friendAttendanceSchema),
+});
+export type AttendanceState = z.infer<typeof attendanceStateSchema>;
+
 /** Мини-место внутри события — бэк отдаёт {id, name} без location/vibes. */
 const eventPlaceMiniSchema = z
   .object({
@@ -93,7 +127,7 @@ export const eventMarkerSchema = z
     category: eventCategorySchema.optional().default('other'),
     vibes: z.array(vibeSchema).optional().default([]),
     price: z.string().nullable().optional().default(null),
-    attendees_count: attendeesCountSchema.optional().default(DEFAULT_ATTENDEES),
+    attendees_count: attendeesCountFlexible.optional().default(DEFAULT_ATTENDEES),
     user_rsvp: userRsvpSchema.optional().default(null),
   })
   .transform((d) => ({
@@ -118,10 +152,12 @@ export const eventDetailSchema = z
     category: eventCategorySchema.optional().default('other'),
     vibes: z.array(vibeSchema).optional().default([]),
     price: z.string().nullable().optional().default(null),
-    attendees_count: attendeesCountSchema.optional().default(DEFAULT_ATTENDEES),
+    attendees_count: attendeesCountFlexible.optional().default(DEFAULT_ATTENDEES),
     user_rsvp: userRsvpSchema.optional().default(null),
     organizer: organizerSchema.optional().default(DEFAULT_ORGANIZER),
     url: z.string().nullable().optional().default(null),
+    is_going: z.boolean().optional().default(false),
+    friends_attending: z.array(friendAttendanceSchema).optional().default([]),
   })
   .transform((d) => ({
     ...d,

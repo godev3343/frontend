@@ -4,6 +4,9 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   output: 'standalone',
+  // TODO: временно отключено. Чтобы вернуть индикатор — удали строку ниже
+  // (default = включён) или поставь `devIndicators: { position: 'bottom-right' }`.
+  devIndicators: false,
   images: {
     /**
      * R2 public bucket — нужен для next/image, чтобы рендерить фото мест,
