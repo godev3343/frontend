@@ -59,6 +59,7 @@ export default function ProfilePage() {
           checkins: me.checkins_count,
           points: me.points,
         }}
+        status={me.status}                  // ← НОВОЕ
         animatePoints
         pointsExtra={
           env.NEXT_PUBLIC_FEATURE_POINTS_HISTORY ? (

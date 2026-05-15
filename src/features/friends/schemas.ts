@@ -1,6 +1,9 @@
 // src/features/friends/schemas.ts
 import { z } from "zod/v4";
 
+import { userStatusSchema } from "@/features/points/status-schema";
+
+
 /**
  * Бэк отдаёт юзеров через `public_name` (computed property), а фронт-UI
  * использует `display_name`. Маппим внутри схемы — UI код не трогаем.
@@ -22,6 +25,8 @@ export const publicUserSchema = z
     avatar_url: z.string().nullable().optional().default(null),
     bio: z.string().default(''),
     points: z.number().default(0),
+    status: userStatusSchema.nullable().optional(),    // ← НОВОЕ
+
   })
   .transform((d) => ({
     id: d.id,
@@ -29,6 +34,7 @@ export const publicUserSchema = z
     avatar_url: d.avatar_url ?? '',
     bio: d.bio,
     points: d.points,
+    status: d.status ?? null,                          // ← НОВОЕ
   }));
 
 export type PublicUser = z.infer<typeof publicUserSchema>;
@@ -61,11 +67,15 @@ export const userProfileSchema = z
     friendship_id: z.number().nullable().default(null),
     friends_count: z.number().default(0),
     checkins_count: z.number().default(0),
+    status: userStatusSchema.nullable().optional(),    // ← НОВОЕ
+
   })
   .transform((d) => ({
     ...d,
     display_name: d.display_name ?? d.public_name ?? '',
     avatar_url: d.avatar_url ?? '',
+    status: d.status ?? null,                          // ← НОВОЕ (нормализуем undefined → null)
+
   }));
 
 export type UserProfile = z.infer<typeof userProfileSchema>;

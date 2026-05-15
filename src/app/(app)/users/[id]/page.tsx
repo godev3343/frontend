@@ -58,6 +58,7 @@ export default function UserProfilePage() {
           checkins: data.checkins_count,
           points: data.points,
         }}
+        status={data.status}                // ← НОВОЕ
         action={
           <FriendshipButton
             userId={data.id}

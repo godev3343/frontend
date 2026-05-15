@@ -1,5 +1,8 @@
 // src/features/auth/schemas.ts
 import { z } from "zod/v4";
+
+import { userStatusSchema } from "@/features/points/status-schema";
+
 export const emailSchema = z
   .string()
   .trim()
@@ -93,6 +96,8 @@ export const userSchema = z.object({
   is_onboarded: z.boolean().default(false),
   friends_count: z.number().int().default(0),
   checkins_count: z.number().int().default(0),
+  status: userStatusSchema.nullable().optional(),   // ← НОВОЕ
+
 });
 
 export type User = z.infer<typeof userSchema>;

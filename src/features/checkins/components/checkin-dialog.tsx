@@ -2,7 +2,7 @@
 "use client";
 
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState} from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod/v4";
@@ -29,6 +29,7 @@ import type { UploadPhase } from "@/features/media/use-image-upload";
 import { getApiErrorCode, getApiErrorMessage } from "@/lib/errors";
 
 import { useCreateCheckin } from "../hooks/use-create-checkin";
+
 
 const formSchema = z.object({
   comment: z.string().max(500).default(""),
@@ -67,6 +68,8 @@ export function CheckinDialog({ place, open, onOpenChange, onSuccess }: Props) {
   const [photoUrl, setPhotoUrl] = useState<string>("");
   const [photoKey, setPhotoKey] = useState<string | null>(null);
   const [photoPhase, setPhotoPhase] = useState<UploadPhase>("idle");
+  const [retrying, setRetrying] = useState(false);  // ← НОВОЕ
+
 
   const form = useForm<
     z.input<typeof formSchema>,
@@ -105,58 +108,111 @@ export function CheckinDialog({ place, open, onOpenChange, onSuccess }: Props) {
     coords !== null && distance !== null && distance <= CHECKIN_RADIUS_METERS;
 
   const onSubmit = (values: FormValues) => {
-    if (!coords) {
-      toast.error("Не удалось определить вашу геопозицию");
-      return;
-    }
-    const d = haversineMeters(
-      { lat: coords.lat, lng: coords.lng },
-      place.location,
-    );
-    if (d > CHECKIN_RADIUS_METERS) {
-      toast.error("Подойдите ближе к месту (≤100м)");
-      return;
-    }
-    // Защита от race: если фото всё ещё обрабатывается — не шлём.
-    // Кнопка disabled, но это дополнительная защита (keyboard submit / a11y).
-    if (isPhotoBusy(photoPhase)) {
-      toast.error("Дождитесь окончания обработки фото");
-      return;
-    }
+  if (!coords) {
+    toast.error("Не удалось определить вашу геопозицию");
+    return;
+  }
+  const d = haversineMeters(
+    { lat: coords.lat, lng: coords.lng },
+    place.location,
+  );
+  if (d > CHECKIN_RADIUS_METERS) {
+    toast.error("Подойдите ближе к месту (≤100м)");
+    return;
+  }
+  if (isPhotoBusy(photoPhase)) {
+    toast.error("Дождитесь окончания обработки фото");
+    return;
+  }
 
-    const comment = (values.comment ?? "").trim();
+  const comment = (values.comment ?? "").trim();
 
-    createCheckinMut.mutate(
-      {
-        place_id: place.id,
-        lat: coords.lat,
-        lng: coords.lng,
-        photo_key: photoKey,
-        comment: comment.length > 0 ? comment : null,
-      },
-      {
-        onSuccess: () => {
-          handleOpenChange(false);
-          onSuccess?.();
-        },
-       onError: async (err) => {
-      const code = await getApiErrorCode(err);
-      if (code === "photo_not_ready") {
-        toast.error(
-          "Фото ещё обрабатывается на сервере. Подождите пару секунд и попробуйте снова.",
-        );
-        return;
-      }
-      toast.error(await getApiErrorMessage(err));
+  // ВРЕМЕННО для дебага photo_not_found — снести после фикса.
+  console.log("[checkin] submit", {
+    place_id: place.id,
+    place_id_type: typeof place.id,
+    photo_key: photoKey,
+    photo_key_type: typeof photoKey,
+    photo_url: photoUrl,
+    photo_phase: photoPhase,
+  });
+
+  createCheckinMut.mutate(
+    {
+      place_id: place.id,
+      lat: coords.lat,
+      lng: coords.lng,
+      photo_key: photoKey,
+      comment: comment.length > 0 ? comment : null,
     },
+    {
+      onSuccess: () => {
+        handleOpenChange(false);
+        onSuccess?.();
       },
+onError: async (err) => {
+  const code = await getApiErrorCode(err);
+
+  if (code === "photo_not_ready") {
+    toast.error(
+      "Фото ещё обрабатывается на сервере. Подождите пару секунд и попробуйте снова.",
     );
-  };
+    return;
+  }
+
+  // photo_not_found на свежезагруженном фото — race между Celery
+  // (поставившим asset в PROCESSED) и primary, с которого читает /checkins/.
+  // Один тихий retry через 800мс решает в большинстве случаев.
+  // `retrying` гарантирует один ретрай: если он уже был — сбрасываем фото.
+  if (code === "photo_not_found") {
+    if (!retrying && photoKey !== null && coords !== null) {
+      setRetrying(true);
+      setTimeout(() => {
+        createCheckinMut.mutate(
+          {
+            place_id: place.id,
+            lat: coords.lat,
+            lng: coords.lng,
+            photo_key: photoKey,
+            comment: comment.length > 0 ? comment : null,
+          },
+          {
+            onSuccess: () => {
+              setRetrying(false);
+              handleOpenChange(false);
+              onSuccess?.();
+            },
+            onError: () => {
+              setRetrying(false);
+              setPhotoUrl("");
+              setPhotoKey(null);
+              setPhotoPhase("idle");
+              toast.error("Фото потеряно на сервере. Загрузите его ещё раз.");
+            },
+          },
+        );
+      }, 800);
+      return;
+    }
+    setRetrying(false);
+    setPhotoUrl("");
+    setPhotoKey(null);
+    setPhotoPhase("idle");
+    toast.error("Фото потеряно на сервере. Загрузите его ещё раз.");
+    return;
+  }
+
+  toast.error(await getApiErrorMessage(err));
+},
+    },
+  );
+};
 
   const photoBusy = isPhotoBusy(photoPhase);
   const photoSelectedButNotReady = photoKey !== null && photoPhase !== "ready" && photoPhase !== "idle";
   const submitDisabled =
     createCheckinMut.isPending ||
+    retrying ||                        // ← ДОБАВИТЬ
     status === "requesting" ||
     !coords ||
     !isInRange ||

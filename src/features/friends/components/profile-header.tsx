@@ -2,7 +2,12 @@
 "use client";
 
 import { PointsBadge } from "@/components/brand/points-badge";
+import { StatusBadge } from "@/components/brand/status-badge";
 import { UserAvatar } from "@/components/brand/user-avatar";
+import {
+  deriveStatusFromPoints,
+  type UserStatus,
+} from "@/features/points/status-schema";
 
 type Stats = {
   friends: number;
@@ -15,6 +20,8 @@ type Props = {
   avatarUrl: string;
   bio: string;
   stats: Stats;
+  status?: UserStatus | null;
+
   /** Слот под кнопки: «Редактировать» для self, FriendshipButton для чужого. */
   action: React.ReactNode;
   /**
@@ -30,11 +37,16 @@ export function ProfileHeader({
   displayName,
   avatarUrl,
   bio,
+  status,
   stats,
   action,
   animatePoints = false,
   pointsExtra,
 }: Props) {
+
+    const effectiveStatus = status ?? deriveStatusFromPoints(stats.points);
+
+
   return (
     <div className="flex flex-col gap-6 rounded-2xl border bg-card p-6 sm:flex-row sm:items-start">
       <UserAvatar
@@ -45,7 +57,11 @@ export function ProfileHeader({
 
       <div className="flex-1 space-y-3">
         <div>
-          <h1 className="text-2xl font-semibold">{displayName}</h1>
+            <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-2xl font-semibold">{displayName}</h1>
+            <StatusBadge status={effectiveStatus} />
+          </div>
+
           {bio && <p className="mt-1 text-muted-foreground">{bio}</p>}
         </div>
 
