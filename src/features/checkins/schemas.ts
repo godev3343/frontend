@@ -1,6 +1,8 @@
 // src/features/checkins/schemas.ts
 import { z } from "zod/v4";
 
+import { achievementMiniSchema } from "@/features/achievements/schemas";
+
 /**
  * Бэк CheckInSerializer отдаёт:
  *   id, created_at, comment, likes_count, lat, lng,
@@ -87,6 +89,7 @@ export const checkinSchema = z.preprocess(
     // points_delta — бэк сейчас не отдаёт (нет в CheckInSerializer); хук
     // use-create-checkin корректно обрабатывает undefined → не показывает тост
     points_delta: z.number().int().optional(),
+    unlocked_achievements: z.array(achievementMiniSchema).optional(),
   }),
 );
 

@@ -4,6 +4,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+import { achievementsKeys } from "@/features/achievements/query-keys";
 import { ME_QUERY_KEY } from "@/features/auth/hooks";
 import { mapKeys } from "@/features/map/query-keys";
 import { pointsKeys } from "@/features/points/query-keys";
@@ -42,7 +43,19 @@ export function useCreateCheckin() {
         place_id: checkin.place.id,
         points_delta: typeof delta === "number" ? delta : 0,
       });
-
+      const unlocked = checkin.unlocked_achievements;
+      if (Array.isArray(unlocked) && unlocked.length > 0) {
+    for (const ach of unlocked) {
+    toast.success(`🏆 ${ach.name}`, {
+      description: "Новое достижение!",
+      duration: 5000,
+    });
+  }
+  track("achievement_unlocked", {
+    codes: unlocked.map((a) => a.code).join(","),
+  });
+}
+      void qc.invalidateQueries({ queryKey: achievementsKeys.me() });
       void qc.invalidateQueries({ queryKey: checkinsKeys.feed() });
       void qc.invalidateQueries({ queryKey: checkinsKeys.me() });
       void qc.invalidateQueries({

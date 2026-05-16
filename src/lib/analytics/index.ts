@@ -27,7 +27,9 @@ export type AnalyticsEvent =
   | 'points_history_viewed'
   | 'place_opened'
   | 'event_opened'
-  | 'event_rsvp_changed';
+  | 'event_rsvp_changed'
+  | 'achievements_viewed'      // ← добавь
+  | 'achievement_unlocked';
 
 type AnalyticsProps = Record<string, string | number | boolean | null | undefined>;
 
