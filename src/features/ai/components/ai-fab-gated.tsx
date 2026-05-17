@@ -6,13 +6,7 @@ import { env } from "@/lib/env";
 import { AiFab } from "./ai-fab";
 
 /**
- * Обёртка над AiFab — рендерит кнопку ТОЛЬКО если бэк EPIC 8 готов
- * (флаг NEXT_PUBLIC_FEATURE_AI=true в .env.local).
- *
- * В pre-MVP по умолчанию выключено: эндпоинт POST /api/ai/recommend
- * на бэке не реализован, любой запрос даст 404 + красный toast у юзера.
- *
- * Использование: в city-map.tsx импортировать AiFabGated вместо AiFab.
+ * Обёртка над AiFab — рендерит кнопку ТОЛЬКО если флаг NEXT_PUBLIC_FEATURE_AI=true.
  */
 export function AiFabGated() {
   if (!env.NEXT_PUBLIC_FEATURE_AI) return null;

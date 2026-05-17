@@ -12,7 +12,7 @@ export default function NotFound() {
       </div>
       <div>
         <h1 className="text-4xl font-bold text-white">404</h1>
-        <p className="mt-2 text-gray-400">Такой страницы нет на карте</p>
+        <p className="mt-2 text-muted-foreground">Такой страницы нет на карте</p>
       </div>
       <Button asChild>
         <Link href="/">На карту</Link>

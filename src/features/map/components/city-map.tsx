@@ -34,12 +34,8 @@ const INITIAL_ZOOM = 13;
  *   2. Кастомная геокнопка — z-20, middle
  *   3. NavigationControl от MapLibre (zoom +/-) — z-10, bottom (через CSS-override в globals.css)
  *
- * На mobile padding-bottom учитывает floating BottomNav (bottom-24 = 6rem).
- * На desktop floating BottomNav нет → отступ можно меньше, но оставляем
- * единый bottom-24 для консистентности (Sidebar не в нижней зоне).
- *
- * Все три блока в правом нижнем углу — `right-3` (12px от края), у них
- * одинаковая ось X. По вертикали стэк через flex-col с gap-2.
+ * Состояние AI-Sheet (aiOpen) живёт здесь, чтобы VibeFilterBar мог скрываться
+ * когда AI открыт — иначе фильтр-чипы торчат поверх AI-чата.
  */
 export function CityMap() {
   const mapRef = useRef<MapRef | null>(null);
@@ -113,9 +109,6 @@ export function CityMap() {
         mapStyle={env.NEXT_PUBLIC_MAP_STYLE_URL}
         onLoad={handleLoad}
         onMoveEnd={handleMoveEnd}
-        // Attribution существует (юр. требование OSM/OpenMapTiles), но
-        // скрыта через CSS-override в globals.css (.maplibregl-ctrl-attrib
-        // { display: none }) — для dev/MVP. ВЕРНУТЬ перед prod-релизом.
         attributionControl={{ compact: true }}
         style={{ width: "100%", height: "100%" }}
       >
@@ -140,47 +133,36 @@ export function CityMap() {
       </Map>
 
       <VibeFilterBar
-        showEvents={showEvents}
-        onToggleEvents={() => setShowEvents((v) => !v)}
-      />
+  showEvents={showEvents}
+  onToggleEvents={() => setShowEvents((v) => !v)}
+/>
 
-      {/*
-        Правый нижний стэк: AI-FAB сверху, гео-кнопка под ним.
-        NavigationControl от MapLibre (zoom +/-) живёт ПОД ними в том же
-        углу — позиционирование делает сам MapLibre, мы только подгоняем
-        spacing через CSS-override (.maplibregl-ctrl-bottom-right) в globals.css.
-
-        bottom-32 = под зум-контролы MapLibre (которые ~bottom-3 + высота 80px).
-        Точное значение подобрано визуально, держим единый offset для всего стека.
-      */}
-        <div className="pointer-events-none absolute bottom-[13.5rem] right-3 z-20 flex flex-col items-end gap-2">
+      <div className="pointer-events-none absolute bottom-[13.5rem] right-3 z-20 flex flex-col items-end gap-2">
   <AiFab />
-  <button
-    type="button"
-    onClick={() => {
-      if (geoStatus !== "granted" || !userLocation) {
-        requestGeo();
-        return;
-      }
-      mapRef.current?.flyTo({
-        center: [userLocation.lng, userLocation.lat],
-        zoom: 15,
-        duration: 600,
-      });
-    }}
-    className={
-      // Тот же стиль что у MapLibre-zoom (см. globals.css):
-      // 48x48 круг, тёмный glass, лайм-hover, белая иконка.
-      "pointer-events-auto inline-flex h-12 w-12 items-center justify-center " +
-      "rounded-full transition-colors " +
-      "bg-card/90 text-foreground border border-border backdrop-blur-md " +
-      "hover:bg-primary/15"
-    }
-    aria-label="Моя локация"
-  >
-    <Crosshair className="h-5 w-5" />
-  </button>
-</div>
+        <button
+          type="button"
+          onClick={() => {
+            if (geoStatus !== "granted" || !userLocation) {
+              requestGeo();
+              return;
+            }
+            mapRef.current?.flyTo({
+              center: [userLocation.lng, userLocation.lat],
+              zoom: 15,
+              duration: 600,
+            });
+          }}
+          className={
+            "pointer-events-auto inline-flex h-12 w-12 items-center justify-center " +
+            "rounded-full transition-colors " +
+            "bg-card/90 text-foreground border border-border backdrop-blur-md " +
+            "hover:bg-primary/15"
+          }
+          aria-label="Моя локация"
+        >
+          <Crosshair className="h-5 w-5" />
+        </button>
+      </div>
 
       {isFetching && (
         <div className="pointer-events-none absolute bottom-3 left-1/2 z-10 -translate-x-1/2 rounded-full bg-card/90 px-3 py-1 text-xs text-muted-foreground backdrop-blur-md">

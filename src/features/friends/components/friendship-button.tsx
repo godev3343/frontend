@@ -44,17 +44,14 @@ export function FriendshipButton({ userId, status, friendshipId }: Props) {
 
   if (status === "none") {
     return (
-      <Button
-        onClick={() => send.mutate(userId)}
-        disabled={send.isPending}
-      >
+      <Button onClick={() => send.mutate(userId)} disabled={send.isPending}>
         <UserPlus className="mr-2 h-4 w-4" />
         Добавить в друзья
       </Button>
     );
   }
 
-  if (status === "outgoing") {
+  if (status === "pending_outgoing") {
     return (
       <Button
         variant="outline"
@@ -69,7 +66,7 @@ export function FriendshipButton({ userId, status, friendshipId }: Props) {
     );
   }
 
-  if (status === "incoming") {
+  if (status === "pending_incoming") {
     return (
       <div className="flex gap-2">
         <Button

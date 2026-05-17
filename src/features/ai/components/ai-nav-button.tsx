@@ -3,9 +3,10 @@
 
 import { Sparkles } from 'lucide-react';
 import dynamic from 'next/dynamic';
-import { useState } from 'react';
 
 import { cn } from '@/lib/utils';
+
+import { useAiSheetStore } from '../lib/ai-sheet-store';
 
 // см. ai-fab.tsx — lazy для уменьшения initial bundle на главной/ленте.
 const AiChatSheet = dynamic(
@@ -16,9 +17,13 @@ const AiChatSheet = dynamic(
 /**
  * Tab-bar entry that opens the same AiChatSheet.
  * Doesn't change route — opens an overlay on the current page.
+ *
+ * Состояние open живёт в общем zustand-сторе — VibeFilterBar и другие
+ * элементы поверх карты могут на него подписываться.
  */
 export function AiNavButton() {
-  const [open, setOpen] = useState(false);
+  const open = useAiSheetStore((s) => s.open);
+  const setOpen = useAiSheetStore((s) => s.setOpen);
 
   return (
     <>
@@ -28,8 +33,8 @@ export function AiNavButton() {
         aria-label="AI-помощник"
         className={cn(
           'flex flex-1 flex-col items-center justify-center gap-1',
-          'min-h-11 text-gray-400 transition-colors duration-200',
-          'hover:text-primary',
+          'min-h-11 transition-colors duration-200',
+          'text-[color:var(--text-mute)] hover:text-primary',
         )}
       >
         <Sparkles className="size-6" strokeWidth={2} aria-hidden />

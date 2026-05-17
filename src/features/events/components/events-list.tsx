@@ -38,7 +38,7 @@ export function EventsList({ vibes, date }: Props) {
   if (isLoading) {
     return (
       <div className="flex justify-center py-10">
-        <Loader2 className="size-6 animate-spin text-gray-400" />
+        <Loader2 className="size-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -71,7 +71,7 @@ export function EventsList({ vibes, date }: Props) {
       <div ref={sentinelRef} className="h-1" />
       {isFetchingNextPage && (
         <div className="flex justify-center py-6">
-          <Loader2 className="size-5 animate-spin text-gray-400" />
+          <Loader2 className="size-5 animate-spin text-muted-foreground" />
         </div>
       )}
     </>

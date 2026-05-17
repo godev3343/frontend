@@ -36,13 +36,13 @@ export function EmptyState({
       role="status"
     >
       {Icon && (
-        <div className="mb-1 rounded-2xl bg-gray-800 p-3">
-          <Icon className="size-7 text-gray-400" aria-hidden />
+        <div className="mb-1 rounded-2xl bg-secondary p-3">
+          <Icon className="size-7 text-muted-foreground" aria-hidden />
         </div>
       )}
-      <p className="text-base font-semibold text-white">{title}</p>
+      <p className="text-base font-semibold text-foreground">{title}</p>
       {description && (
-        <p className="max-w-xs text-sm text-gray-400">{description}</p>
+        <p className="max-w-xs text-sm text-muted-foreground">{description}</p>
       )}
       {action && <div className="mt-2">{action}</div>}
     </div>

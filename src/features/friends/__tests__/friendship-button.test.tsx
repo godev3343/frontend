@@ -39,17 +39,17 @@ describe("FriendshipButton", () => {
     expect(screen.getByText(/добавить в друзья/i)).toBeInTheDocument();
   });
 
-  it("status=outgoing → показывает 'Отменить заявку'", () => {
+  it("status=pending_outgoing → показывает 'Отменить заявку'", () => {
     render(
-      <FriendshipButton userId={1} status="outgoing" friendshipId={42} />,
+      <FriendshipButton userId={1} status="pending_outgoing" friendshipId={42} />,
       { wrapper },
     );
     expect(screen.getByText(/отменить заявку/i)).toBeInTheDocument();
   });
 
-  it("status=incoming → показывает 'Принять' и 'Отклонить'", () => {
+  it("status=pending_incoming → показывает 'Принять' и 'Отклонить'", () => {
     render(
-      <FriendshipButton userId={1} status="incoming" friendshipId={42} />,
+      <FriendshipButton userId={1} status="pending_incoming" friendshipId={42} />,
       { wrapper },
     );
     expect(screen.getByText(/принять/i)).toBeInTheDocument();

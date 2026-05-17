@@ -172,7 +172,7 @@ export function ReviewFormDialog({ placeId, open, onOpenChange, editing }: Props
                       "size-7",
                       n <= rating
                         ? "fill-yellow-400 text-yellow-400"
-                        : "text-gray-600",
+                        : "text-muted-foreground/40",
                     )}
                   />
                 </button>

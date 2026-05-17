@@ -23,7 +23,7 @@ export default function UserProfileError({
       <h1 className="text-xl font-semibold text-white">
         Не удалось загрузить профиль
       </h1>
-      <p className="text-sm text-gray-400">
+      <p className="text-sm text-muted-foreground">
         Пользователь не найден или у тебя нет к нему доступа.
       </p>
       <div className="flex gap-2">

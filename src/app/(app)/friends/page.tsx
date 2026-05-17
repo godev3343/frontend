@@ -50,7 +50,8 @@ export default function FriendsPage() {
           <FriendsList
             query={friends}
             emptyText="У вас пока нет друзей. Найдите кого-нибудь через поиск выше."
-            renderItem={(item) => (
+          >
+            {(item) => (
               <UserCard
                 user={item.user}
                 href={`/users/${item.user.id}`}
@@ -63,14 +64,15 @@ export default function FriendsPage() {
                 }
               />
             )}
-          />
+          </FriendsList>
         </TabsContent>
 
         <TabsContent value="incoming" className="mt-4">
           <FriendsList
             query={incoming}
             emptyText="Нет входящих заявок."
-            renderItem={(item) => (
+          >
+            {(item) => (
               <UserCard
                 user={item.user}
                 href={`/users/${item.user.id}`}
@@ -105,14 +107,15 @@ export default function FriendsPage() {
                 }
               />
             )}
-          />
+          </FriendsList>
         </TabsContent>
 
         <TabsContent value="outgoing" className="mt-4">
           <FriendsList
             query={outgoing}
             emptyText="Нет отправленных заявок."
-            renderItem={(item) => (
+          >
+            {(item) => (
               <UserCard
                 user={item.user}
                 href={`/users/${item.user.id}`}
@@ -133,7 +136,7 @@ export default function FriendsPage() {
                 }
               />
             )}
-          />
+          </FriendsList>
         </TabsContent>
       </Tabs>
     </div>

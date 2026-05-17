@@ -74,7 +74,7 @@ export function ReviewsSection({ placeId }: Props) {
 
   if (isError) {
     return (
-      <p className="py-4 text-center text-sm text-gray-400">
+      <p className="py-4 text-center text-sm text-muted-foreground">
         Не удалось загрузить отзывы
       </p>
     );
@@ -84,7 +84,7 @@ export function ReviewsSection({ placeId }: Props) {
     <section className="space-y-4">
       <header className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">
-          Отзывы {total > 0 ? <span className="text-gray-500">({total})</span> : null}
+        Отзывы {total > 0 ? <span className="text-muted-foreground">({total})</span> : null}
         </h3>
         {canInteract ? (
           <Button
@@ -99,7 +99,7 @@ export function ReviewsSection({ placeId }: Props) {
       </header>
 
       {reviews.length === 0 ? (
-        <p className="py-6 text-center text-sm text-gray-500">
+        <p className="py-6 text-center text-sm text-muted-foreground">
           Пока нет отзывов. Будьте первым.
         </p>
       ) : (

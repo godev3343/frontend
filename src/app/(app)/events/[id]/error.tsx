@@ -23,7 +23,7 @@ export default function EventDetailError({
       <h1 className="text-xl font-semibold text-white">
         Не удалось загрузить событие
       </h1>
-      <p className="text-sm text-gray-400">
+      <p className="text-sm text-muted-foreground">
         Возможно, оно было удалено или у тебя нет доступа.
       </p>
       <div className="flex gap-2">

@@ -45,20 +45,28 @@ export function AiChatInput({
   };
 
   return (
-    <div className="flex items-end gap-2">
+    // items-center — кнопка вертикально центрируется относительно textarea.
+    // При 1 строке textarea (h-11) и Button (size-11) ровно совпадают по высоте.
+    // При росте textarea до 2-5 строк кнопка остаётся посередине — для коротких
+    // запросов AI это читается естественнее чем items-end (Telegram-style).
+    <div className="flex items-center gap-2">
       <TextareaAutosize
         value={text}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder="Например: атмосферный бар на район пешком..."
+        placeholder="Атмосферный бар в районе пешком..."
         minRows={1}
         maxRows={5}
         disabled={disabled}
         aria-label="Запрос к AI-помощнику"
         className={cn(
-          "flex-1 resize-none rounded-2xl border border-gray-700 bg-gray-900 px-4 py-3",
-          "text-sm text-white placeholder:text-gray-500",
-          "focus:border-primary focus:outline-none",
+          // База: те же h-11 что у Button — на 1 строке совпадают идеально.
+          // py-2.5 + leading-tight даёт визуально 44px высоту при minRows=1.
+          "flex-1 resize-none rounded-2xl px-4 py-2.5 leading-tight",
+          // Цвета через токены — input/border/foreground, как в shadcn Input.
+          "bg-input/40 border border-input text-foreground placeholder:text-muted-foreground",
+          // Focus — лайм-кольцо через --ring токен (как у shadcn Input).
+          "focus:outline-none focus:ring-2 focus:ring-ring/60",
           "disabled:cursor-not-allowed disabled:opacity-60",
         )}
       />

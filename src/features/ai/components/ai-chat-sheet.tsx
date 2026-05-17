@@ -25,7 +25,6 @@ interface Props {
 }
 
 function genId(): string {
-  // crypto.randomUUID is available in modern browsers + node
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
     return crypto.randomUUID();
   }
@@ -40,7 +39,6 @@ export function AiChatSheet({ open, onOpenChange }: Props) {
 
   const mutation = useAiRecommend();
 
-  // Auto-scroll to bottom on new messages / loading state
   useEffect(() => {
     const node = scrollRef.current;
     if (!node) return;
@@ -66,14 +64,11 @@ export function AiChatSheet({ open, onOpenChange }: Props) {
           },
         ]);
       },
-      // onError handled inline via mutation.error
     });
   };
 
   const handleOpenOnMap = (placeId: string) => {
     onOpenChange(false);
-    // push, чтобы был back-stack: пользователь может вернуться к открытому чату.
-    // CityMap читает selectedId напрямую из useSearchParams, синк автоматический.
     router.push(`/?placeId=${encodeURIComponent(placeId)}`, { scroll: false });
   };
 
@@ -85,9 +80,17 @@ export function AiChatSheet({ open, onOpenChange }: Props) {
         side="bottom"
         className="flex h-[90vh] flex-col gap-0 sm:side-right sm:h-full sm:max-w-md"
       >
-        <SheetHeader className="border-b border-gray-800 pb-4">
+        {/*
+          Padding-стратегия Sheet'а:
+            - SheetHeader сам внутри p-4 (см. sheet.tsx).
+            - Скролл-контейнер и футер с input'ом — px-4, чтобы контент
+              не упирался в края Sheet'а (на скрине было видно — чипы
+              стояли впритык к border'ам).
+            - На крестик закрытия (top-3 right-3) padding контента не влияет.
+        */}
+        <SheetHeader className="border-b border-border pb-4">
           <SheetTitle className="flex items-center gap-2">
-          <Sparkles className="size-5 text-primary" />
+            <Sparkles className="size-5 text-primary" />
             AI «Куда пойти?»
           </SheetTitle>
           <SheetDescription>
@@ -97,7 +100,7 @@ export function AiChatSheet({ open, onOpenChange }: Props) {
 
         <div
           ref={scrollRef}
-          className="flex-1 space-y-4 overflow-y-auto py-4 pr-1"
+          className="flex-1 space-y-4 overflow-y-auto px-4 py-4"
         >
           {isEmpty && (
             <SuggestionChips
@@ -109,14 +112,14 @@ export function AiChatSheet({ open, onOpenChange }: Props) {
           {messages.map((msg) =>
             msg.role === "user" ? (
               <div key={msg.id} className="flex justify-end">
-              <div className="max-w-[85%] rounded-2xl rounded-br-sm bg-primary text-primary-foreground px-4 py-2 text-sm">
+                <div className="max-w-[85%] rounded-2xl rounded-br-sm bg-primary text-primary-foreground px-4 py-2 text-sm">
                   {msg.content}
                 </div>
               </div>
             ) : (
               <div key={msg.id} className="space-y-3">
                 {msg.recommendations.length === 0 ? (
-                  <p className="text-sm text-gray-400">
+                  <p className="text-sm text-muted-foreground">
                     Ничего подходящего не нашлось. Попробуйте другой запрос.
                   </p>
                 ) : (
@@ -133,7 +136,7 @@ export function AiChatSheet({ open, onOpenChange }: Props) {
           )}
 
           {mutation.isPending && (
-            <div className="flex items-center gap-2 text-sm text-gray-400">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <span className="size-2 animate-pulse rounded-full bg-primary" />
               <span className="size-2 animate-pulse rounded-full bg-primary [animation-delay:150ms]" />
               <span className="size-2 animate-pulse rounded-full bg-primary [animation-delay:300ms]" />
@@ -151,7 +154,7 @@ export function AiChatSheet({ open, onOpenChange }: Props) {
           )}
         </div>
 
-        <div className="border-t border-gray-800 pt-4">
+        <div className="border-t border-border px-4 py-4">
           <AiChatInput
             value={inputValue}
             onValueChange={setInputValue}

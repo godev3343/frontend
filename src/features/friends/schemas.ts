@@ -43,10 +43,19 @@ export type PublicUser = z.infer<typeof publicUserSchema>;
  * 'self' добавлен для случая, когда смотришь свой профиль через /users/{me.id}.
  * Бэк отдаёт friendship_status в UserPublicSerializer (CharField — без enum check).
  */
+/**
+ * Friendship-статус юзера относительно текущего.
+ * Имена выровнены с бэком (apps/social/views — annotate-логика):
+ *   - none — никаких отношений
+ *   - pending_outgoing — я отправил заявку, жду ответа
+ *   - pending_incoming — мне отправили, надо принять/отклонить
+ *   - friends — взаимная дружба
+ *   - self — это я сам (используется для редиректа на /profile)
+ */
 export const friendshipStatusSchema = z.enum([
   "none",
-  "incoming",
-  "outgoing",
+  "pending_incoming",
+  "pending_outgoing",
   "friends",
   "self",
 ]);
@@ -60,10 +69,19 @@ export const userProfileSchema = z
     avatar_url: z.string().nullable().optional().default(null),
     bio: z.string().default(''),
     points: z.number().default(0),
-    friendship_status: z
-      .string()
-      .transform((v) => (friendshipStatusSchema.safeParse(v).success ? v : 'none'))
-      .pipe(friendshipStatusSchema),
+// safeParse-fallback — на случай если бэк добавит новый статус и пока не
+    // выкатили фронт под него. Логируем в консоль явно, чтобы рассинхрон было
+    // видно в dev-tools и Sentry breadcrumbs, а не диагностировать через
+    // "кнопка не работает" в проде.
+    friendship_status: z.string().transform((v) => {
+      const parsed = friendshipStatusSchema.safeParse(v);
+      if (parsed.success) return parsed.data;
+      console.warn(
+        `[schemas] Unknown friendship_status from API: "${v}". Falling back to "none". ` +
+          `Update friendshipStatusSchema in schemas.ts.`,
+      );
+      return "none" as const;
+    }),
     friendship_id: z.number().nullable().default(null),
     friends_count: z.number().default(0),
     checkins_count: z.number().default(0),

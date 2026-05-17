@@ -15,8 +15,8 @@ interface Props {
 export function SuggestionChips({ onPick, disabled = false }: Props) {
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2 text-sm text-gray-400">
-        <Sparkles className="size-4" />
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Sparkles className="size-4 text-primary" aria-hidden />
         <span>Не знаете что спросить? Попробуйте:</span>
       </div>
       <div className="flex flex-wrap gap-2">
@@ -27,8 +27,8 @@ export function SuggestionChips({ onPick, disabled = false }: Props) {
             onClick={() => onPick(text)}
             disabled={disabled}
             className={cn(
-              "rounded-full border border-gray-700 bg-gray-800/60 px-3 py-1.5",
-              "text-sm text-gray-200 transition-colors",
+              "rounded-full border border-border bg-secondary/60 px-3 py-1.5",
+              "text-sm text-foreground transition-colors",
               "hover:border-primary hover:bg-secondary",
               "disabled:cursor-not-allowed disabled:opacity-50",
             )}

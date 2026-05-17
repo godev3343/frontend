@@ -15,7 +15,7 @@ export const CityMap = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="flex h-full w-full items-center justify-center bg-gray-950 text-sm text-gray-500">
+      <div className="flex h-full w-full items-center justify-center bg-background text-sm text-muted-foreground">
         Карта загружается…
       </div>
     ),

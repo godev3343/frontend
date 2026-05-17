@@ -25,7 +25,7 @@ export default function AuthError({
     <main className="bg-background flex min-h-svh items-center justify-center p-4">
       <div className="w-full max-w-md space-y-4 text-center">
         <h1 className="text-xl font-semibold text-white">Не удалось загрузить</h1>
-        <p className="text-sm text-gray-400">
+        <p className="text-sm text-muted-foreground">
           Похоже, проблема с подключением. Проверь интернет и попробуй ещё раз.
         </p>
         <Button onClick={reset} className="mt-2">

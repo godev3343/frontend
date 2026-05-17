@@ -8,19 +8,31 @@ import {
 } from "../schemas";
 
 describe("pointsReasonSchema", () => {
-  it("принимает все reason'ы из бэка", () => {
+  // После фикса B1 (см. REDESIGN_TODO) pointsReasonSchema — открытая
+  // z.string(), а не z.enum. Это сделано чтобы фронт не падал zod-ошибкой
+  // на новых значениях reason с бэка (бэкенд может добавить achievement,
+  // review_posted, и т.д. без согласованной выкатки фронта).
+  //
+  // Поэтому здесь тестируем что:
+  //   1. Известные значения принимаются как есть
+  //   2. Произвольные значения тоже принимаются (открытый enum)
+  //   3. Не-строки падают (это всё ещё контракт типа)
+
+  it("принимает известные reason'ы как есть", () => {
     for (const r of ["checkin", "first_checkin", "friend_added"]) {
       expect(pointsReasonSchema.parse(r)).toBe(r);
     }
   });
 
-  it("падает на удалённых reason'ах (signup/referral вырезаны в EPIC 9)", () => {
-    expect(() => pointsReasonSchema.parse("signup")).toThrow();
-    expect(() => pointsReasonSchema.parse("referral")).toThrow();
+  it("принимает произвольную строку (открытый enum)", () => {
+    // Бэк может ввести новый reason без фронт-релиза — фронт не должен падать.
+    expect(pointsReasonSchema.parse("review_posted")).toBe("review_posted");
+    expect(pointsReasonSchema.parse("ufo_landing")).toBe("ufo_landing");
   });
 
-  it("падает на полностью неизвестном reason", () => {
-    expect(() => pointsReasonSchema.parse("ufo_landing")).toThrow();
+  it("падает на не-строке", () => {
+    expect(() => pointsReasonSchema.parse(42)).toThrow();
+    expect(() => pointsReasonSchema.parse(null)).toThrow();
   });
 });
 

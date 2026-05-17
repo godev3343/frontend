@@ -32,7 +32,12 @@ export function UserAvatar({ src, name, size = 'md', active, className }: UserAv
     <div
       className={cn(
         'relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full',
-        'bg-gray-800 font-semibold text-white',
+        // Fallback-фон через токены: surface-hi + текст foreground.
+        // Раньше был bg-gray-800 — на OKLCH-фоне (--background теплее)
+        // tailwind-gray холодный, давал визуальную синеву (см. чат).
+        // ring-inset border-border отделяет аватар от bg-card / bg-secondary
+        // на которых он живёт (карточки профиля, лента, и т.д.).
+        'bg-secondary font-semibold text-foreground ring-1 ring-inset ring-border',
         active && 'ring-offset-background ring-2 ring-primary ring-offset-2',
         box,
         className,

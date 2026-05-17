@@ -22,7 +22,7 @@ export function EventCard({ event }: Props) {
       href={`/events/${event.id}`}
       className="border-border bg-card group/event flex flex-col overflow-hidden rounded-2xl border transition-colors hover:border-primary/60"
     >
-      <div className="relative aspect-[16/9] w-full overflow-hidden bg-gray-800">
+      <div className="relative aspect-[16/9] w-full overflow-hidden bg-secondary">
         {event.cover_url ? (
           <Image
             src={event.cover_url}
@@ -32,12 +32,15 @@ export function EventCard({ event }: Props) {
             className="object-cover transition-transform duration-300 group-hover/event:scale-105"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-gray-600">
+          <div className="flex h-full w-full items-center justify-center text-muted-foreground">
             <Calendar className="size-12" />
           </div>
         )}
         {event.price && (
-          <span className="absolute right-2 top-2 rounded-full bg-gray-900/85 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-md">
+          // Overlay-чип цены поверх фото. bg-background с blur — тёмный токен
+          // (oklch ~0.16), контрастный на любой картинке. Backdrop-blur делает
+          // плашку читаемой даже на ярком/пёстром cover'е.
+          <span className="absolute right-2 top-2 rounded-full bg-background/85 px-2.5 py-1 text-xs font-medium text-foreground backdrop-blur-md">
             {event.price}
           </span>
         )}
@@ -54,7 +57,9 @@ export function EventCard({ event }: Props) {
             return (
               <span
                 key={v}
-                className="rounded-full px-2 py-0.5 text-[10px] font-medium text-gray-900"
+                // text-background — наш тёмный токен. На ярком vibe-фоне
+                // (oklch lightness ~0.78) даёт высокий контраст без хардкода.
+                className="rounded-full px-2 py-0.5 text-[10px] font-medium text-background"
                 style={{ backgroundColor: c.hex }}
               >
                 {c.label}

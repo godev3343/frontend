@@ -1,18 +1,18 @@
 // src/app/(app)/profile/points/loading.tsx
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton } from "@/components/ui/skeleton";
 
-export default function PointsLoading() {
+export default function Loading() {
   return (
-    <main className="container mx-auto max-w-2xl space-y-4 px-4 py-6">
+    <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
-        <Skeleton className="h-7 w-40 bg-gray-800" />
-        <Skeleton className="h-7 w-16 rounded-full bg-gray-800" />
+        <Skeleton className="h-7 w-40" />
+        <Skeleton className="h-7 w-16 rounded-full" />
       </div>
-      <div className="space-y-2">
+      <div className="space-y-3">
         {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} className="h-14 w-full rounded-xl bg-gray-800" />
+          <Skeleton key={i} className="h-14 w-full rounded-xl" />
         ))}
       </div>
-    </main>
+    </div>
   );
 }

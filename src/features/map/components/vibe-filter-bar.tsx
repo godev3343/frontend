@@ -1,6 +1,7 @@
 // src/features/map/components/vibe-filter-bar.tsx
 "use client";
 
+import { useAiSheetStore } from "@/features/ai/lib/ai-sheet-store";
 import { useVibeFilter } from "@/features/map/hooks/use-vibe-filter";
 import { VIBE_COLORS, VIBE_LIST } from "@/features/map/lib/vibe-colors";
 import { cn } from "@/lib/utils";
@@ -13,36 +14,31 @@ interface Props {
 /**
  * VibeFilterBar — горизонтальный скролл-стрип с фильтрами по вайбам + переключатель событий.
  *
- * v2 (OKLCH-палитра + scroll-indicator):
- *   - bg-gray-900/85 → bg-card/85 (наш surface через токен)
- *   - border-gray-700/50 → border-border
- *   - bg-gray-800/60 → bg-secondary/60 (наш surface-hi)
- *   - text-gray-200 → text-foreground
- *   - text-gray-900 → text-background (тёмный текст на цветном vibe-фоне)
- *
- * Скролл:
- *   - 7 вайбов + разделитель + «События» = 8 чипов, не помещается на mobile.
- *   - overflow-x-auto + scrollbar скрыт (как было).
- *   - Дополнительно: fade-маска справа (CSS mask) — визуальный сигнал
- *     что есть ещё контент справа, юзер должен проскроллить.
+ * Скрывается с fade-out когда открыт AI-Sheet (читает useAiSheetStore).
+ * Иначе фильтры торчат на фоне AI-чата и сбивают фокус — юзер в AI
+ * формулирует запрос, фильтры карты в этот момент смысловой шум.
  */
 export function VibeFilterBar({ showEvents, onToggleEvents }: Props) {
   const { selected, toggle } = useVibeFilter();
+  const aiOpen = useAiSheetStore((s) => s.open);
 
   return (
-    <div className="pointer-events-none absolute inset-x-0 top-0 z-10 px-3 pt-3">
+    <div
+      className={cn(
+        "pointer-events-none absolute inset-x-0 top-0 z-10 px-3 pt-3",
+        "transition-all duration-200 ease-out",
+        aiOpen && "-translate-y-2 opacity-0",
+      )}
+      aria-hidden={aiOpen}
+    >
       <div
         className={cn(
           "pointer-events-auto flex gap-2 overflow-x-auto rounded-full p-1.5 shadow-lg",
           "bg-card/85 border border-border backdrop-blur-md",
-          // Скрыть скроллбар — кросс-браузерно.
           "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
-          // Fade-маска справа: подсказка что есть ещё контент.
-          // Слева не делаем, потому что в начале скролла никакой fade не нужен,
-          // а CSS-логика «fade только когда скроллнули» требует JS или :has(.scrolled),
-          // что переусложнит. Правый fade — постоянный, его достаточно.
           "[mask-image:linear-gradient(to_right,black_85%,transparent_100%)]",
           "[-webkit-mask-image:linear-gradient(to_right,black_85%,transparent_100%)]",
+          aiOpen && "pointer-events-none",
         )}
       >
         {VIBE_LIST.map((vibe) => {
@@ -61,8 +57,6 @@ export function VibeFilterBar({ showEvents, onToggleEvents }: Props) {
                   : "bg-secondary/60 text-foreground border-border hover:bg-secondary",
               )}
               style={
-                // Активный фон — vibe-color через CSS-переменную (OKLCH).
-                // borderColor совпадает с фоном — кнопка читается как solid pill.
                 isActive
                   ? { backgroundColor: color.hex, borderColor: color.hex }
                   : undefined
@@ -73,7 +67,6 @@ export function VibeFilterBar({ showEvents, onToggleEvents }: Props) {
           );
         })}
 
-        {/* Тонкий вертикальный разделитель между вайбами и событиями. */}
         <div className="w-px shrink-0 self-stretch bg-border" />
 
         <button

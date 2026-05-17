@@ -38,7 +38,12 @@ export function useUserProfile(userId: number | null) {
     queryKey: userId ? friendsKeys.profile(userId) : ["user-profile", "none"],
     queryFn: () => fetchUserProfile(userId!),
     enabled: userId !== null,
-    staleTime: 30_000,
+    // staleTime убран намеренно: на странице профиля важен актуальный
+    // friendship_status. Юзер может отправить/принять заявку с другого
+    // экрана (или с другого устройства), и при возврате на профиль
+    // должен видеть актуальное состояние кнопки, а не закешированное.
+    // Запрос дешёвый (один GET), фоновый refetch при ре-маунте — норм.
+    refetchOnMount: "always",
   });
 }
 
@@ -154,7 +159,7 @@ export function useSendFriendRequest() {
     onMutate: async (toUserId) => {
       await qc.cancelQueries({ queryKey: friendsKeys.profile(toUserId) });
       const prev = setProfileStatus(qc, toUserId, {
-        friendship_status: "outgoing",
+        friendship_status: "pending_outgoing",
       });
       return { prev, toUserId };
     },
@@ -167,7 +172,7 @@ export function useSendFriendRequest() {
     onSuccess: (friendship, toUserId) => {
       // Обновляем friendship_id, чтобы потом можно было отменить
       setProfileStatus(qc, toUserId, {
-        friendship_status: "outgoing",
+        friendship_status: "pending_outgoing",
         friendship_id: friendship.id,
       });
       qc.invalidateQueries({ queryKey: friendsKeys.outgoing() });

@@ -10,12 +10,20 @@ import type { Friendship, Paginated } from "../schemas";
 
 type Props = {
   query: UseInfiniteQueryResult<{ pages: Paginated<Friendship>[] }, Error>;
-  renderItem: (item: Friendship) => React.ReactNode;
+  /**
+   * Рендер-функция элемента. Используем `children` (function-as-children),
+   * а не отдельный prop `renderItem` — иначе Next.js 16 ругается на пересечение
+   * "use client" границы с не-сериализуемым пропсом-функцией (TS71007).
+   * Children из этого правила исключён.
+   */
+  children: (item: Friendship) => React.ReactNode;
   emptyText: string;
 };
 
-export function FriendsList({ query, renderItem, emptyText }: Props) {
+export function FriendsList({ query, children, emptyText }: Props) {
   const sentinelRef = useRef<HTMLDivElement>(null);
+
+  const { hasNextPage, isFetchingNextPage, fetchNextPage } = query;
 
   useEffect(() => {
     const el = sentinelRef.current;
@@ -25,10 +33,10 @@ export function FriendsList({ query, renderItem, emptyText }: Props) {
       (entries) => {
         if (
           entries[0]?.isIntersecting &&
-          query.hasNextPage &&
-          !query.isFetchingNextPage
+          hasNextPage &&
+          !isFetchingNextPage
         ) {
-          query.fetchNextPage();
+          fetchNextPage();
         }
       },
       { rootMargin: "200px" },
@@ -36,7 +44,7 @@ export function FriendsList({ query, renderItem, emptyText }: Props) {
 
     observer.observe(el);
     return () => observer.disconnect();
-  }, [query.hasNextPage, query.isFetchingNextPage, query.fetchNextPage]);
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   if (query.isPending) {
     return (
@@ -65,7 +73,7 @@ export function FriendsList({ query, renderItem, emptyText }: Props) {
   return (
     <div className="space-y-2">
       {items.map((item) => (
-        <div key={item.id}>{renderItem(item)}</div>
+        <div key={item.id}>{children(item)}</div>
       ))}
       <div ref={sentinelRef} className="h-4" />
       {query.isFetchingNextPage && (

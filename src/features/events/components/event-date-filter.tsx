@@ -14,7 +14,6 @@ interface Props {
   onChange: (preset: Preset, range: DateRange) => void;
 }
 
-/** Чистая утилита: пресет -> ISO-границы. Тестируется. */
 export function presetToRange(preset: Preset, now: Date = new Date()): DateRange {
   switch (preset) {
     case "today":
@@ -56,12 +55,14 @@ export function EventDateFilter({ value, onChange }: Props) {
             key={p.value}
             type="button"
             onClick={() => onChange(p.value, presetToRange(p.value))}
+            // Стиль идентичен vibe-filter-bar'у: pill, активный = bg-primary,
+            // неактивный = bg-secondary/60. Единый паттерн toggle-чипа.
+            // (См. долг A5 в TODO — выносить в общий ToggleChip; пока inline.)
             className={cn(
-              "shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
-              "border border-gray-700/50",
+              "shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors border",
               isActive
-              ? "bg-primary text-primary-foreground border-primary"
-                : "bg-gray-800/60 text-gray-200 hover:bg-gray-700/70",
+                ? "bg-primary text-primary-foreground border-primary"
+                : "bg-secondary/60 text-foreground border-border hover:bg-secondary",
             )}
           >
             {p.label}

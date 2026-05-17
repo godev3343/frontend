@@ -25,7 +25,7 @@ export function RecommendationCard({ recommendation, onOpenOnMap }: Props) {
 
   if (isLoading) {
     return (
-      <div className="space-y-3 rounded-2xl border border-gray-700 bg-gray-800/40 p-4">
+      <div className="space-y-3 rounded-2xl border border-border bg-card/60 p-4">
         <Skeleton className="h-32 w-full rounded-xl" />
         <Skeleton className="h-5 w-2/3" />
         <Skeleton className="h-12 w-full" />
@@ -49,8 +49,8 @@ export function RecommendationCard({ recommendation, onOpenOnMap }: Props) {
   return (
     <article
       className={cn(
-        "space-y-3 overflow-hidden rounded-2xl border border-gray-700",
-        "bg-gray-800/60 backdrop-blur-sm",
+        "space-y-3 overflow-hidden rounded-2xl border border-border",
+        "bg-card/60 backdrop-blur-sm",
       )}
     >
       {photo && (
@@ -67,7 +67,7 @@ export function RecommendationCard({ recommendation, onOpenOnMap }: Props) {
 
       <div className="space-y-3 px-4 pb-4">
         <div className="flex items-start justify-between gap-3">
-          <h3 className="text-base font-semibold text-white">{place.name}</h3>
+          <h3 className="text-base font-semibold text-foreground">{place.name}</h3>
           <span
             className="mt-1 size-3 shrink-0 rounded-full"
             style={{ backgroundColor: vibeColor }}
@@ -75,14 +75,11 @@ export function RecommendationCard({ recommendation, onOpenOnMap }: Props) {
           />
         </div>
 
-        <div
-          className={cn(
-            "flex gap-2 rounded-xl border border-primary/30 bg-primary/5 p-3",
-            "flex gap-2 rounded-xl border border-primary/30 bg-primary/5 p-3",
-          )}
-        >
+        <div className="flex gap-2 rounded-xl border border-primary/30 bg-primary/5 p-3">
           <Sparkles className="mt-0.5 size-4 shrink-0 text-primary" />
-          <p className="leading-relaxed">{recommendation.reasoning}</p>
+          <p className="text-sm leading-relaxed text-foreground/90">
+            {recommendation.reasoning}
+          </p>
         </div>
 
         <Button

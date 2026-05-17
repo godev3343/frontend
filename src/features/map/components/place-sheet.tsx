@@ -31,15 +31,6 @@ interface Props {
   onClose: () => void;
 }
 
-/**
- * Radix Dialog/Sheet требует, чтобы DialogTitle присутствовал на каждом
- * монтировании Content — иначе screen reader не объявляет содержимое и
- * Radix кричит в консоль. Раньше SheetTitle жил только в ветке {place && ...},
- * поэтому при loading/error предупреждение срабатывало.
- *
- * Решение: SheetHeader + SheetTitle рендерим ВСЕГДА; пока place не загружен —
- * скрываем визуально через `sr-only` (текст доступен ассистивным технологиям).
- */
 export function PlaceSheet({ placeId, userLocation, onClose }: Props) {
   const open = placeId !== null;
   const [checkinOpen, setCheckinOpen] = useState(false);
@@ -58,29 +49,44 @@ export function PlaceSheet({ placeId, userLocation, onClose }: Props) {
   return (
     <>
       <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
+        {/*
+          Padding стратегия:
+          - SheetContent сам по себе без padding'а (так в shadcn).
+          - Делаем структурную обёртку с p-0 + внутренние блоки управляют отступами:
+            * Cover-фото — без padding'а, от края до края (full-bleed).
+            * Всё остальное — внутри секций с px-4 (как в ai-chat-sheet).
+          - Это убирает рассинхрон -mx-6/-mt-6 (старый отрицательный
+            margin был рассчитан на p-6 родителя, а родитель имеет p-4 →
+            фото вылазило криво).
+        */}
         <SheetContent
           side="bottom"
-          className="max-h-[85vh] overflow-y-auto sm:side-right sm:max-w-md"
+          className="max-h-[85vh] gap-0 overflow-y-auto p-0 sm:side-right sm:max-w-md"
         >
-          {/*
-            Header рендерим всегда. Когда place загружен — показываем фото,
-            vibe-чипсы, title и description с полной стилизацией.
-            Когда place ещё нет — header в sr-only, но SheetTitle есть,
-            чтобы Radix не ругался.
-          */}
-          <SheetHeader className={cn(place ? "space-y-3" : "sr-only")}>
-            {place?.photos[0] ? (
-              <div className="relative -mx-6 -mt-6 h-48 overflow-hidden">
-                <Image
-                  src={place.photos[0].feed_url ?? place.photos[0].url}
-                  alt={place.name}
-                  fill
-                  sizes="(max-width: 640px) 100vw, 28rem"
-                  className="object-cover"
-                />
-              </div>
-            ) : null}
+          {/* Cover-фото на всю ширину Sheet'а. Без padding'а вокруг,
+              визуально упирается в края — это намеренно (hero-стиль). */}
+          {place?.photos[0] ? (
+            <div className="relative h-48 w-full overflow-hidden">
+              <Image
+                src={place.photos[0].feed_url ?? place.photos[0].url}
+                alt={place.name}
+                fill
+                sizes="(max-width: 640px) 100vw, 28rem"
+                className="object-cover"
+                style={{ objectPosition: "center 30%" }}
+              />
+            </div>
+          ) : null}
 
+          {/*
+            Header рендерим всегда (Radix требует SheetTitle на каждом монтировании).
+            Когда place ещё не загружен — title в sr-only.
+          */}
+          <SheetHeader
+            className={cn(
+              place ? "space-y-3 px-4 pt-4" : "sr-only",
+            )}
+          >
             {place && place.vibes.length > 0 ? (
               <div className="flex flex-wrap items-center gap-2">
                 {place.vibes.map((v) => {
@@ -88,7 +94,7 @@ export function PlaceSheet({ placeId, userLocation, onClose }: Props) {
                   return (
                     <span
                       key={v.vibe}
-                      className="rounded-full px-2.5 py-0.5 text-xs font-medium text-gray-900"
+                      className="rounded-full px-2.5 py-0.5 text-xs font-medium text-background"
                       style={{
                         backgroundColor: c.hex,
                         opacity: 0.4 + v.weight * 0.6,
@@ -105,7 +111,7 @@ export function PlaceSheet({ placeId, userLocation, onClose }: Props) {
                 return (
                   <div className="flex flex-wrap items-center gap-2">
                     <span
-                      className="rounded-full px-2.5 py-0.5 text-xs font-medium text-gray-900"
+                      className="rounded-full px-2.5 py-0.5 text-xs font-medium text-background"
                       style={{ backgroundColor: c.hex }}
                     >
                       {c.label}
@@ -120,7 +126,7 @@ export function PlaceSheet({ placeId, userLocation, onClose }: Props) {
             </SheetTitle>
 
             {place && (place.category || place.address || place.hours) ? (
-              <SheetDescription className="space-y-1 text-sm text-gray-400">
+              <SheetDescription className="space-y-1 text-sm text-muted-foreground">
                 {place.category ? (
                   <span className="flex items-center gap-1.5">
                     <Tag className="h-3.5 w-3.5" />
@@ -143,8 +149,9 @@ export function PlaceSheet({ placeId, userLocation, onClose }: Props) {
             ) : null}
           </SheetHeader>
 
+          {/* Скелетоны/error при загрузке — тоже с px-4 для консистентности */}
           {isLoading ? (
-            <div className="space-y-4">
+            <div className="space-y-4 px-4 py-4">
               <Skeleton className="h-48 w-full rounded-2xl" />
               <Skeleton className="h-6 w-2/3" />
               <Skeleton className="h-4 w-1/2" />
@@ -153,31 +160,35 @@ export function PlaceSheet({ placeId, userLocation, onClose }: Props) {
           ) : null}
 
           {isError ? (
-            <div className="py-8 text-center text-sm text-gray-400">
+            <div className="px-4 py-8 text-center text-sm text-muted-foreground">
               Не удалось загрузить место. Попробуйте ещё раз.
             </div>
           ) : null}
 
           {place ? (
             <>
-              {place.description ? (
-                <p className="mt-4 text-sm leading-relaxed text-gray-300">
-                  {place.description}
-                </p>
-              ) : null}
+              {/* Основной контент места — общий px-4 для всех секций */}
+              <div className="space-y-6 px-4 pb-6 pt-4">
+                {place.description ? (
+                  <p className="text-sm leading-relaxed text-foreground/90">
+                    {place.description}
+                  </p>
+                ) : null}
 
-              <div className="mt-6 space-y-2">
-                <div className="text-xs text-gray-500">{distanceLabel}</div>
-                <Button
-                  className="w-full"
-                  disabled={!canCheckin}
-                  onClick={() => setCheckinOpen(true)}
-                  title={canCheckin ? undefined : "Подойдите ближе (≤ 100 м)"}
-                >
-                  {canCheckin ? "Чек-ин" : "Подойдите ближе для чек-ина"}
-                </Button>
-              </div>
-                            <div className="mt-8">
+                <div className="space-y-2">
+                  <div className="text-mono-label text-muted-foreground">
+                    {distanceLabel}
+                  </div>
+                  <Button
+                    className="w-full"
+                    disabled={!canCheckin}
+                    onClick={() => setCheckinOpen(true)}
+                    title={canCheckin ? undefined : "Подойдите ближе (≤ 100 м)"}
+                  >
+                    {canCheckin ? "Чек-ин" : "Подойдите ближе для чек-ина"}
+                  </Button>
+                </div>
+
                 <ReviewsSection placeId={place.id} />
               </div>
             </>

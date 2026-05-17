@@ -54,7 +54,7 @@ export function EventDetailView({ eventId }: Props) {
   return (
     <article className="flex flex-col gap-5">
       {event.cover_url && (
-        <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl bg-gray-800">
+        <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl bg-secondary">
           <Image
             src={event.cover_url}
             alt={event.title}
@@ -75,7 +75,7 @@ export function EventDetailView({ eventId }: Props) {
             return (
               <span
                 key={v}
-                className="rounded-full px-2.5 py-0.5 text-xs font-medium text-gray-900"
+                className="rounded-full px-2.5 py-0.5 text-xs font-medium text-background"
                 style={{ backgroundColor: c.hex }}
               >
                 {c.label}

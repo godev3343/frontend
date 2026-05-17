@@ -4,6 +4,7 @@
 import { Heart, MoreVertical, Pencil, Star, Trash2 } from "lucide-react";
 import Image from "next/image";
 
+import { UserAvatar } from "@/components/brand/user-avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -19,7 +20,7 @@ import type { Review } from "../schemas";
 interface Props {
   review: Review;
   placeId: string;
-  canInteract: boolean; // false для анонимов — лайк/меню скрыты
+  canInteract: boolean;
   onEdit?: (review: Review) => void;
   onDelete?: (review: Review) => void;
 }
@@ -29,8 +30,7 @@ function formatDate(iso: string): string {
   return d.toLocaleDateString("ru-RU", {
     day: "numeric",
     month: "short",
-    year:
-      d.getFullYear() === new Date().getFullYear() ? undefined : "numeric",
+    year: d.getFullYear() === new Date().getFullYear() ? undefined : "numeric",
   });
 }
 
@@ -44,25 +44,21 @@ export function ReviewCard({
   const likeMut = useLikeReview();
 
   return (
-    <article className="space-y-3 rounded-2xl border border-gray-800 bg-gray-900/40 p-4">
+    <article className="space-y-3 rounded-2xl border border-border bg-card/40 p-4">
       <header className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          {review.user.avatar_url ? (
-            <Image
-              src={review.user.avatar_url}
-              alt={review.user.public_name}
-              width={36}
-              height={36}
-              className="size-9 rounded-full object-cover"
-            />
-          ) : (
-            <div className="size-9 rounded-full bg-gray-700" />
-          )}
+          {/* Используем общий UserAvatar — он уже на токенах (bg-secondary
+              + ring-border) и показывает инициалы при отсутствии фото. */}
+          <UserAvatar
+            src={review.user.avatar_url}
+            name={review.user.public_name}
+            size="sm"
+          />
           <div>
-            <div className="text-sm font-medium text-white">
+            <div className="text-sm font-medium text-foreground">
               {review.user.public_name}
             </div>
-            <div className="text-xs text-gray-500">
+            <div className="text-mono-label text-muted-foreground">
               {formatDate(review.created_at)}
             </div>
           </div>
@@ -90,7 +86,10 @@ export function ReviewCard({
         ) : null}
       </header>
 
-      <div className="flex items-center gap-0.5" aria-label={`${review.rating} из 5`}>
+      <div
+        className="flex items-center gap-0.5"
+        aria-label={`${review.rating} из 5`}
+      >
         {Array.from({ length: 5 }).map((_, i) => (
           <Star
             key={i}
@@ -98,14 +97,16 @@ export function ReviewCard({
               "size-4",
               i < review.rating
                 ? "fill-yellow-400 text-yellow-400"
-                : "text-gray-700",
+                // Приглушённые звёзды через muted-foreground с прозрачностью,
+                // вместо хардкодного gray-700 (был почти невидим на тёмном).
+                : "text-muted-foreground/40",
             )}
           />
         ))}
       </div>
 
       {review.text ? (
-        <p className="text-sm leading-relaxed text-gray-200 whitespace-pre-wrap">
+        <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">
           {review.text}
         </p>
       ) : null}
@@ -122,30 +123,35 @@ export function ReviewCard({
         </div>
       ) : null}
 
-      <footer className="flex items-center gap-2">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          disabled={!canInteract || likeMut.isPending}
-          onClick={() =>
-            likeMut.mutate({
-              id: review.id,
-              placeId,
-              isLiked: review.is_liked,
-            })
-          }
-          className={cn(
-            "gap-1.5",
-            review.is_liked && "text-red-500",
-          )}
-        >
-          <Heart
-            className={cn("size-4", review.is_liked && "fill-current")}
-          />
-          {review.likes_count}
-        </Button>
-      </footer>
+
+<footer className="flex items-center gap-2 pt-1">
+  <button
+    type="button"
+    disabled={!canInteract || likeMut.isPending}
+    onClick={() =>
+      likeMut.mutate({
+        id: review.id,
+        placeId,
+        isLiked: review.is_liked,
+      })
+    }
+    className={cn(
+      "inline-flex items-center gap-1.5 text-sm transition-colors",
+      "text-muted-foreground hover:text-foreground",
+      "disabled:cursor-not-allowed disabled:opacity-50",
+      review.is_liked && "text-red-500 hover:text-red-500",
+    )}
+    aria-label={review.is_liked ? "Убрать лайк" : "Поставить лайк"}
+  >
+    <Heart
+      className={cn(
+        "size-4 transition-transform",
+        review.is_liked && "fill-current",
+      )}
+    />
+    <span className="tabular-nums">{review.likes_count}</span>
+  </button>
+</footer>
     </article>
   );
 }
