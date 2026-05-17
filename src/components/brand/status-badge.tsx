@@ -19,9 +19,9 @@ type Visual = {
 const STATUS_VISUALS: Record<StatusCode, Visual> = {
   guest:     { icon: Footprints, className: "bg-gray-500/15 text-gray-300 ring-1 ring-inset ring-gray-500/30" },
   explorer:  { icon: Compass,    className: "bg-cyan-500/15 text-cyan-300 ring-1 ring-inset ring-cyan-500/30" },
-  navigator: { icon: MapPinned,  className: "bg-purple-500/20 text-purple-300 ring-1 ring-inset ring-purple-500/30" },
+  navigator: { icon: MapPinned, className: "bg-primary/15 text-primary ring-1 ring-inset ring-primary/30" },
   insider:   { icon: Sparkle,    className: "bg-pink-500/20 text-pink-300 ring-1 ring-inset ring-pink-500/30" },
-  legend:    { icon: Crown,      className: "bg-brand-gradient text-white shadow-glow-purple" },
+  legend: { icon: Crown, className: "bg-primary text-primary-foreground shadow-glow-accent" },
 };
 
 type StatusBadgeProps = {

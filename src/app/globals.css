@@ -7,6 +7,8 @@
 
 /* ============================================================
    ТОКЕНЫ ДИЗАЙН-СИСТЕМЫ — см. design.md
+   Палитра: OKLCH dark + electric lime accent.
+   Шрифты: Geist (sans) + Geist Mono (моноширинный для meta-текста).
    ============================================================ */
 
 @theme inline {
@@ -30,85 +32,121 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  /* Шрифты */
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-heading: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* Доп. surface-уровни (нет в shadcn по умолчанию) */
+  --color-surface: var(--surface);
+  --color-surface-hi: var(--surface-hi);
+  --color-text-dim: var(--text-dim);
+  --color-text-mute: var(--text-mute);
 
-  /* Radius */
-  --radius: 0.75rem; /* 12px — rounded-xl по дизайну */
-  --radius-sm: calc(var(--radius) * 0.67); /* 8px */
-  --radius-md: var(--radius); /* 12px */
-  --radius-lg: calc(var(--radius) * 1.33); /* 16px */
-  --radius-xl: calc(var(--radius) * 2); /* 24px */
-  --radius-2xl: calc(var(--radius) * 2.67); /* 32px */
+  /* Шрифты — Geist + Geist Mono, подключаются через next/font в layout.tsx */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-heading: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 
-  /* Вайбы мест — 7 шт, цвета адаптированы под бренд (purple-friendly).
-     Применяются на VibeBadge, фильтрах карты, маркерах. */
-  --color-vibe-calm: #60a5fa; /* blue-400 */
-  --color-vibe-active: #fb923c; /* orange-400 */
-  --color-vibe-productive: #c084fc; /* purple-400 */
-  --color-vibe-romantic: #f472b6; /* pink-400 */
-  --color-vibe-musical: #4ade80; /* green-400 */
-  --color-vibe-gaming: #fbbf24; /* amber-400 */
-  --color-vibe-networking: #3b82f6; /* blue-500 */
+  /* Radius — крупнее чем было: pill-эстетика прототипа */
+  --radius: 1rem; /* 16px база */
+  --radius-sm: calc(var(--radius) * 0.5); /* 8px */
+  --radius-md: calc(var(--radius) * 0.75); /* 12px */
+  --radius-lg: var(--radius); /* 16px */
+  --radius-xl: calc(var(--radius) * 1.5); /* 24px */
+  --radius-2xl: calc(var(--radius) * 2); /* 32px */
 
-  /* Эмоции — 6 шт, для emotional traces (Этап 1+, токены готовы) */
-  --color-emotion-joy: #fbbf24;
-  --color-emotion-sad: #3b82f6;
-  --color-emotion-anger: #ef4444;
-  --color-emotion-calm: #10b981;
-  --color-emotion-love: #ec4899;
-  --color-emotion-fear: #8b5cf6;
+  /* Вайбы — 7 шт, palette из прототипа + один новый (gaming).
+     ВНИМАНИЕ: эти токены — источник правды для VIBE_COLORS.
+     При смене значения здесь — карта/фильтры/бейджи перекрашиваются автоматом. */
+  --color-vibe-calm: oklch(0.78 0.1 230); /* blue — спокойно */
+  --color-vibe-active: oklch(0.74 0.18 35); /* orange-red — движ */
+  --color-vibe-productive: oklch(0.78 0.1 280); /* violet — продуктивно */
+  --color-vibe-romantic: oklch(0.78 0.14 360); /* pink — романтично */
+  --color-vibe-musical: oklch(0.78 0.18 320); /* magenta — музыка */
+  --color-vibe-gaming: oklch(0.82 0.16 100); /* yellow-green — игры */
+  --color-vibe-networking: oklch(0.82 0.12 165); /* mint — нетворкинг */
+
+  /* Эмоции — 6 шт, для emotional traces (Этап 1+, токены готовы).
+     Подбираю в той же OKLCH-логике L≈0.78, C средний, hue по смыслу. */
+  --color-emotion-joy: oklch(0.84 0.16 90); /* warm yellow */
+  --color-emotion-sad: oklch(0.7 0.12 250); /* cold blue */
+  --color-emotion-anger: oklch(0.66 0.2 25); /* red */
+  --color-emotion-calm: oklch(0.8 0.1 180); /* teal */
+  --color-emotion-love: oklch(0.78 0.14 360); /* pink */
+  --color-emotion-fear: oklch(0.62 0.16 295); /* violet-dark */
 }
 
 /* ============================================================
-   LIGHT theme — не используется (по design.md dark всегда),
-   оставлено как fallback на случай user-preference переключения
+   LIGHT theme — НЕ ИСПОЛЬЗУЕТСЯ в продукте (приложение всегда dark).
+   Оставлено как минимальный fallback, чтобы не падал контраст
+   если кто-то случайно сорвёт класс `dark`.
+   Намеренно простая: белый/чёрный, лайм-accent.
    ============================================================ */
 :root {
   --background: #ffffff;
-  --foreground: #030712;
+  --foreground: oklch(0.18 0.005 270);
+  --surface: #f5f5f5;
+  --surface-hi: #ebebeb;
+  --text-dim: oklch(0.45 0.012 270);
+  --text-mute: oklch(0.6 0.012 270);
+
   --card: #ffffff;
-  --card-foreground: #030712;
+  --card-foreground: oklch(0.18 0.005 270);
   --popover: #ffffff;
-  --popover-foreground: #030712;
-  --primary: #a855f7; /* purple-500 */
-  --primary-foreground: #ffffff;
-  --secondary: #f3f4f6;
-  --secondary-foreground: #030712;
-  --muted: #f3f4f6;
-  --muted-foreground: #6b7280;
-  --accent: #ec4899; /* pink-500 */
-  --accent-foreground: #ffffff;
-  --destructive: #ef4444;
-  --border: #e5e7eb;
-  --input: #e5e7eb;
-  --ring: #a855f7;
+  --popover-foreground: oklch(0.18 0.005 270);
+
+  --primary: oklch(0.88 0.18 130);
+  --primary-foreground: oklch(0.18 0.04 130);
+  --secondary: #f3f3f3;
+  --secondary-foreground: oklch(0.18 0.005 270);
+  --muted: #f3f3f3;
+  --muted-foreground: oklch(0.5 0.012 270);
+  --accent: oklch(0.88 0.18 130);
+  --accent-foreground: oklch(0.18 0.04 130);
+  --destructive: oklch(0.6 0.22 25);
+  --border: oklch(0.85 0.005 270);
+  --input: oklch(0.92 0.005 270);
+  --ring: oklch(0.88 0.18 130);
 }
 
 /* ============================================================
-   DARK theme — основная, по design.md
+   DARK theme — основная, прямо из прототипа (go-app.jsx tokens).
    ============================================================ */
 .dark {
-  --background: #111827; /* gray-900 */
-  --foreground: #ffffff;
-  --card: #1f2937; /* gray-800 */
-  --card-foreground: #ffffff;
-  --popover: #111827;
-  --popover-foreground: #ffffff;
-  --primary: #a855f7; /* purple-500 — main brand */
-  --primary-foreground: #ffffff;
-  --secondary: #1f2937; /* gray-800 */
-  --secondary-foreground: #ffffff;
-  --muted: #1f2937;
-  --muted-foreground: #9ca3af; /* gray-400 */
-  --accent: #ec4899; /* pink-500 */
-  --accent-foreground: #ffffff;
-  --destructive: #f87171;
-  --border: #374151; /* gray-700 */
-  --input: #1f2937;
-  --ring: #a855f7;
+  /* Фоны — три уровня вложенности: bg < surface < surface-hi */
+  --background: oklch(0.16 0.012 270); /* tokens.bg */
+  --surface: oklch(0.24 0.014 270); /* tokens.surface — карточки */
+  --surface-hi: oklch(0.3 0.016 270); /* tokens.surfaceHi — кнопки в карточках, активные табы */
+
+  /* Текст — три уровня контраста */
+  --foreground: oklch(0.97 0.005 270); /* tokens.text */
+  --text-dim: oklch(0.72 0.012 270); /* tokens.textDim — описания, метаданные */
+  --text-mute: oklch(0.52 0.012 270); /* tokens.textMute — caption, mono-лейблы */
+
+  /* Карточки */
+  --card: oklch(0.24 0.014 270);
+  --card-foreground: oklch(0.97 0.005 270);
+  --popover: oklch(0.21 0.014 270); /* tokens.bg2 — чуть выше bg, но ниже surface */
+  --popover-foreground: oklch(0.97 0.005 270);
+
+  /* Primary = electric lime (CTA-кнопки) */
+  --primary: oklch(0.88 0.18 130);
+  --primary-foreground: oklch(0.18 0.04 130); /* тёмно-зелёный текст на лайме */
+
+  /* Secondary = surface-hi (вторичные кнопки) */
+  --secondary: oklch(0.3 0.016 270);
+  --secondary-foreground: oklch(0.97 0.005 270);
+
+  /* Muted = surface (плашки, skeletons) */
+  --muted: oklch(0.24 0.014 270);
+  --muted-foreground: oklch(0.72 0.012 270);
+
+  /* Accent = тот же лайм (используется в Sheet handle, dots) */
+  --accent: oklch(0.88 0.18 130);
+  --accent-foreground: oklch(0.18 0.04 130);
+
+  --destructive: oklch(0.66 0.2 25);
+
+  /* Бордеры — два уровня прозрачности (как в прототипе border / borderSoft) */
+  --border: oklch(0.4 0.012 270 / 0.45);
+  --input: oklch(0.4 0.012 270 / 0.45);
+  --ring: oklch(0.88 0.18 130);
 }
 
 /* ============================================================
@@ -123,71 +161,188 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Скрыть скроллбар везде — как в прототипе. Скролл остаётся, бары исчезают. */
+    scrollbar-width: none;
+  }
+
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar,
+  *::-webkit-scrollbar {
+    display: none;
   }
 
   body {
     @apply bg-background text-foreground;
   }
 
-  /* Touch targets — минимум 44x44 по design.md a11y */
+  /* letter-spacing — заголовкам нужен tight tracking как в прототипе */
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.02em;
+  }
+
   button,
   [role='button'],
   a {
     @apply outline-none;
   }
 
-  /* Focus ring — purple-500 по design.md */
+  /* Focus ring — лайм */
   *:focus-visible {
     @apply ring-ring/60 ring-offset-background ring-2 ring-offset-2 outline-none;
   }
 }
 
 /* ============================================================
-   Brand utilities — градиенты и глоу из design.md
-   Использовать как обычные tailwind-классы.
+   Brand utilities — стеклянные эффекты и глоу.
+   Старые .bg-brand-gradient / .bg-page-gradient / .bg-card-gradient
+   удалены — фиолетовая палитра не используется.
    ============================================================ */
 @layer utilities {
-  /* Gradient 1 — основной бренд (CTA-кнопки, логотип) */
-  .bg-brand-gradient {
-    background: linear-gradient(135deg, #a855f7 0%, #ec4899 50%, #fb923c 100%);
-  }
-
-  /* Gradient 2 — фон страниц/секций */
-  .bg-page-gradient {
-    background: linear-gradient(180deg, #030712 0%, #500724 50%, #030712 100%);
-  }
-
-  /* Gradient 3 — карточки */
-  .bg-card-gradient {
-    background: linear-gradient(135deg, #1e0a2e 0%, #1f2937 100%);
-  }
-
-  /* Глоу — purple */
-  .shadow-glow-purple {
-    box-shadow: 0 0 32px -4px rgb(168 85 247 / 0.3);
-  }
-
-  .shadow-glow-purple-lg {
-    box-shadow: 0 0 48px -4px rgb(168 85 247 / 0.5);
-  }
-
-  /* Глоу — pink */
-  .shadow-glow-pink {
-    box-shadow: 0 0 32px -4px rgb(236 72 153 / 0.2);
-  }
-
-  /* Glassmorphism — для Glass Card */
+  /* Glassmorphism для TabBar / floating-элементов (см. прототип TabBar) */
   .glass {
-    background: rgb(255 255 255 / 0.05);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgb(255 255 255 / 0.1);
+    background: oklch(0.18 0.012 270 / 0.78);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid var(--border);
   }
 
-  .glass-dark {
-    background: rgb(0 0 0 / 0.3);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgb(255 255 255 / 0.1);
+  /* Glass overlay для PlaceSheet и модалок */
+  .glass-overlay {
+    background: oklch(0 0 0 / 0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
+
+  /**
+   * Глоу для primary CTA-кнопок и крупных элементов.
+   * Смещён вниз на 12px — создаёт ощущение «парящей» кнопки.
+   * Использовать для: Button default, Pill-CTA.
+   */
+  .shadow-glow-accent {
+    box-shadow: 0 12px 30px oklch(0.88 0.18 130 / 0.35);
+  }
+
+  /**
+   * Центрированный глоу — без смещения по Y.
+   * Использовать для: Logo (sm/md), FAB, иконки достижений.
+   */
+  .shadow-glow-accent-center {
+    box-shadow: 0 0 40px oklch(0.88 0.18 130 / 0.45);
+  }
+
+  /**
+   * Центрированный глоу — крупная версия для Logo size=lg.
+   * Радиус пропорционален размеру блока (96px), не уменьшается визуально.
+   */
+  .shadow-glow-accent-lg {
+    box-shadow: 0 0 64px oklch(0.88 0.18 130 / 0.4);
+  }
+
+  /**
+   * Центрированный глоу — большая версия для Logo size=xl и hero-блоков.
+   * Радиус пропорционален размеру блока (128px).
+   */
+  .shadow-glow-accent-xl {
+    box-shadow: 0 0 96px oklch(0.88 0.18 130 / 0.35);
+  }
+
+  /* Мягкая тень для floating-элементов (TabBar, FAB) */
+  .shadow-float {
+    box-shadow: 0 12px 40px oklch(0 0 0 / 0.4);
+  }
+
+  /* Mono-метка — uppercase, letter-spacing, Geist Mono */
+  .text-mono-label {
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+}
+
+/* ============================================================
+   MapLibre GL — override стандартных контролов под нашу палитру.
+   v2: pill-форма как у наших кнопок, лайм-hover,
+   правое выравнивание единого стека (AI-FAB / Geo / Zoom).
+   ============================================================ */
+
+/* Attribution + Logo MapLibre — СКРЫТО на dev/MVP.
+   ВЕРНУТЬ перед prod-релизом (юр. требование OSM/OpenMapTiles/OpenFreeMap).
+   См. REDESIGN_TODO.md → B2.
+   В city-map.tsx уже стоит compact: true — после удаления этих правил
+   атрибуция появится как (i)-попап. */
+.maplibregl-ctrl-attrib,
+.maplibregl-ctrl-attrib.maplibregl-compact,
+.maplibregl-ctrl-bottom-right > .maplibregl-ctrl-attrib,
+.maplibregl-ctrl-logo {
+  display: none !important;
+}
+
+/* Контейнер контролов в bottom-right — отступ от края и от низа.
+   bottom-3 (12px) — единый с нашим right-3 колонкой в city-map.tsx.
+   align-items: flex-end — критично для выравнивания со стеком
+   AI-FAB+Geo (которые сверху через flex-col items-end). */
+.maplibregl-ctrl-bottom-right {
+  bottom: 6.25rem !important;
+  right: 0.75rem !important;
+  align-items: flex-end !important;
+}
+
+/* Группа кнопок zoom — pill-стиль под наши круглые кнопки.
+   Размер: 48px по ширине (как наш h-12 w-12 круг сверху),
+   высота — авто (две кнопки 48x48 = 96px по итогу),
+   скруглён в pill (1.5rem = 24px радиус). */
+.maplibregl-ctrl-group {
+  background: oklch(0.24 0.014 270 / 0.9) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 1.5rem !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 12px oklch(0 0 0 / 0.3);
+  overflow: hidden;
+  width: 48px !important;
+}
+
+/* Убираем дефолтный margin: 10px у MapLibre — иначе группа уезжает
+   относительно нашего стека (AI-FAB / Geo) на ~2-4px влево. */
+.maplibregl-ctrl-bottom-right .maplibregl-ctrl-group {
+  margin: 0 !important;
+}
+
+/* Кнопки внутри — квадратные 48x48, центрированы по контенту */
+.maplibregl-ctrl-group button {
+  background-color: transparent !important;
+  width: 48px !important;
+  height: 48px !important;
+  border: none !important;
+  border-radius: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: background-color 0.15s ease;
+}
+
+/* Разделитель между zoom-in и zoom-out */
+.maplibregl-ctrl-group button + button {
+  border-top: 1px solid var(--border) !important;
+}
+
+/* Hover — лайм с alpha 0.15 (мягкая подсветка, не кислотная) */
+.maplibregl-ctrl-group button:hover {
+  background-color: oklch(0.88 0.18 130 / 0.15) !important;
+}
+
+/* Иконки — белые через инверсию (MapLibre отдаёт чёрные SVG для light-темы) */
+.maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+  filter: invert(1) brightness(0.95);
+}
+
+/* Disabled-состояние (на min/max zoom) */
+.maplibregl-ctrl-group button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+.maplibregl-ctrl-group button:disabled:hover {
+  background-color: transparent !important;
 }

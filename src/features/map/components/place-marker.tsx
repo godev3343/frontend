@@ -28,7 +28,7 @@ export function PlaceMarker({ place, active, onClick }: Props) {
           onClick(place.id);
         }}
         aria-label={`Открыть ${place.name}`}
-        className="relative flex h-8 w-8 items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+        className="relative flex h-8 w-8 items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <span
           className="block rounded-full transition-all duration-200"

@@ -58,7 +58,7 @@ export function AiChatInput({
         className={cn(
           "flex-1 resize-none rounded-2xl border border-gray-700 bg-gray-900 px-4 py-3",
           "text-sm text-white placeholder:text-gray-500",
-          "focus:border-purple-500 focus:outline-none",
+          "focus:border-primary focus:outline-none",
           "disabled:cursor-not-allowed disabled:opacity-60",
         )}
       />

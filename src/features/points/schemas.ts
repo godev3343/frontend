@@ -2,15 +2,37 @@
 import { z } from "zod/v4";
 
 /**
- * Соответствует apps/gamification/models.PointsReason на бэке.
- * Если бэк добавит новый reason — zod упадёт на unknown enum value,
- * и это правильно: фронт должен явно решить как его показать.
+ * Известные нам reason'ы — синхронизированы с apps/gamification/models.PointsReason
+ * на бэке. Источник правды у бэка — apps/gamification/services/points.py::POINTS_BY_REASON.
+ *
+ * ⚠ Для парсинга API-ответа используем pointsReasonSchema (z.string()) ниже,
+ * а KNOWN_REASONS — только для UI-маппинга (см. reason-meta.ts).
+ *
+ * Это решает прод-баг: раньше при добавлении нового reason бэком (например
+ * "review_posted") старая узкая zod-схема падала с invalid_value и юзер
+ * видел raw JSON. Теперь принимаем любую строку, неизвестные значения
+ * корректно деградируют до humanize()-метки через getReasonMeta().
  */
-export const pointsReasonSchema = z.enum([
+export const KNOWN_REASONS = [
   "checkin",
   "first_checkin",
-  "friend_added"
-]);
+  "friend_added",
+  "review_posted",
+] as const;
+
+export type KnownPointsReason = (typeof KNOWN_REASONS)[number];
+
+/**
+ * Reason для парсинга — z.string() вместо z.enum().
+ * Бэк может добавлять новые значения без падений фронта; неизвестные
+ * рендерятся через fallback в reason-meta.ts.
+ *
+ * Если в Sentry/console увидишь много неизвестных reason — это сигнал
+ * синхронизироваться с бэкендером и обновить KNOWN_REASONS + REASON_META.
+ */
+export const pointsReasonSchema = z.string();
+
+/** Сохранён для обратной совместимости с типами в других местах кода. */
 export type PointsReason = z.infer<typeof pointsReasonSchema>;
 
 export const pointsTransactionSchema = z.object({

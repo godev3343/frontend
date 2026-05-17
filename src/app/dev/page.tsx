@@ -9,12 +9,23 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 
+/**
+ * Dev-галерея компонентов. Доступна только в dev (в проде → 404).
+ *
+ * Используется для:
+ *   - быстрой визуальной проверки всех bricks дизайн-системы
+ *   - смока после изменений в globals.css / shadcn-примитивах
+ *
+ * v2 (OKLCH-палитра):
+ *   - bg-page-gradient → bg-background
+ *   - shadow-glow-purple* / shadow-glow-pink → shadow-glow-accent / shadow-float
+ *   - bg-card-gradient → featured-карточка с двойным radial-gradient vibe-цветов
+ */
 export default function DevGallery() {
-  // Доступно только в dev — в проде отдаём 404
   if (process.env.NODE_ENV === 'production') notFound();
 
   return (
-    <div className="bg-page-gradient min-h-dvh">
+    <div className="bg-background min-h-dvh">
       <div className="mx-auto max-w-5xl space-y-12 p-6 md:p-12">
         <Section title="Logo">
           <div className="flex items-end gap-6">
@@ -27,8 +38,8 @@ export default function DevGallery() {
 
         <Section title="Buttons">
           <div className="flex flex-wrap items-center gap-3">
-            <Button variant="brand">Primary CTA</Button>
-            <Button variant="default">Default</Button>
+            {/* default — лайм CTA по дизайн-системе v2 */}
+            <Button>Default (lime CTA)</Button>
             <Button variant="secondary">Secondary</Button>
             <Button variant="outline">Outline</Button>
             <Button variant="ghost">Ghost</Button>
@@ -39,6 +50,7 @@ export default function DevGallery() {
             <Button size="sm">Small</Button>
             <Button>Default</Button>
             <Button size="lg">Large</Button>
+            <Button size="pill">Pill</Button>
             <Button disabled>Disabled</Button>
           </div>
         </Section>
@@ -89,9 +101,14 @@ export default function DevGallery() {
           <div className="flex items-center gap-3">
             <PointsBadge points={42} />
             <PointsBadge points={1234} />
-            <PointsBadge points={42} variant="gradient" />
-            <PointsBadge points={1234} variant="gradient" />
             <PointsBadge points={5} size="sm" />
+            {/*
+              Если в твоём points-badge.tsx остался variant="gradient" —
+              раскомментируй строку ниже. Я её закомментил, потому что
+              старый gradient-вариант устарел и, скорее всего, ты его
+              уже почистил при правке bg-brand-gradient → bg-primary.
+            */}
+            {/* <PointsBadge points={1234} variant="gradient" /> */}
           </div>
         </Section>
 
@@ -101,33 +118,46 @@ export default function DevGallery() {
               <CardHeader>
                 <CardTitle>Standard Card</CardTitle>
               </CardHeader>
-              <CardContent>Тело карточки. По design.md gray-800 / rounded-2xl.</CardContent>
+              <CardContent>Тело карточки. По design.md v2 — surface / rounded-lg.</CardContent>
             </Card>
-            <Card className="bg-card-gradient border-0">
+
+            {/*
+              Featured Card — двойной радиальный градиент vibe-цветов поверх surface.
+              Это паттерн прототипа: hero-карточки событий, profile-header и т.п.
+              Заменяет устаревший .bg-card-gradient (фиолетово-серый).
+            */}
+            <Card
+              className="border-0"
+              style={{
+               background: `
+                radial-gradient(120% 100% at 0% 0%, oklch(0.78 0.18 320 / 0.45), transparent 60%),
+                radial-gradient(80% 80% at 100% 100%, oklch(0.74 0.18 35 / 0.35), transparent 60%),
+                var(--surface)
+              `,
+            }}
+            >
               <CardHeader>
-                <CardTitle>Gradient Card</CardTitle>
+                <CardTitle>Featured Card</CardTitle>
               </CardHeader>
-              <CardContent>Покрашена через .bg-card-gradient.</CardContent>
+              <CardContent>Двойной radial-gradient vibe-цветов. Для hero-карточек.</CardContent>
             </Card>
+
             <Card className="glass border-0 bg-transparent">
               <CardHeader>
                 <CardTitle>Glass Card</CardTitle>
               </CardHeader>
-              <CardContent>Glassmorphism через .glass.</CardContent>
+              <CardContent>Glassmorphism через .glass — для TabBar и floating-элементов.</CardContent>
             </Card>
           </div>
         </Section>
 
-        <Section title="Glow shadows">
+        <Section title="Shadows">
           <div className="flex gap-4">
-            <div className="shadow-glow-purple flex size-24 items-center justify-center rounded-2xl bg-gray-800 text-xs text-gray-400">
-              purple
+            <div className="shadow-glow-accent bg-surface flex size-24 items-center justify-center rounded-2xl text-xs text-[color:var(--text-dim)]">
+              glow-accent
             </div>
-            <div className="shadow-glow-purple-lg flex size-24 items-center justify-center rounded-2xl bg-gray-800 text-xs text-gray-400">
-              purple-lg
-            </div>
-            <div className="shadow-glow-pink flex size-24 items-center justify-center rounded-2xl bg-gray-800 text-xs text-gray-400">
-              pink
+            <div className="shadow-float bg-surface flex size-24 items-center justify-center rounded-2xl text-xs text-[color:var(--text-dim)]">
+              float
             </div>
           </div>
         </Section>
@@ -139,7 +169,7 @@ export default function DevGallery() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h2 className="mb-4 text-2xl font-bold text-white">{title}</h2>
+      <h2 className="text-foreground mb-4 text-2xl font-bold">{title}</h2>
       {children}
     </section>
   );

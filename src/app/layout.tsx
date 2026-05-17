@@ -3,13 +3,19 @@ import './globals.css';
 import "maplibre-gl/dist/maplibre-gl.css";
 
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
+import { Geist, Geist_Mono } from 'next/font/google';
 
 import { Providers } from './providers';
 
-const inter = Inter({
+const geistSans = Geist({
   subsets: ['latin', 'cyrillic'],
-  variable: '--font-inter',
+  variable: '--font-geist-sans',
+  display: 'swap',
+});
+
+const geistMono = Geist_Mono({
+  subsets: ['latin'],
+  variable: '--font-geist-mono',
   display: 'swap',
 });
 
@@ -52,7 +58,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ru" className={`dark ${inter.variable}`} suppressHydrationWarning>
+    <html lang="ru" className={`dark ${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
       <body className="bg-background text-foreground min-h-dvh antialiased">
         <Providers>{children}</Providers>
       </body>

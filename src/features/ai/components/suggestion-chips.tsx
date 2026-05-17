@@ -29,7 +29,7 @@ export function SuggestionChips({ onPick, disabled = false }: Props) {
             className={cn(
               "rounded-full border border-gray-700 bg-gray-800/60 px-3 py-1.5",
               "text-sm text-gray-200 transition-colors",
-              "hover:border-purple-500 hover:bg-gray-800",
+              "hover:border-primary hover:bg-secondary",
               "disabled:cursor-not-allowed disabled:opacity-50",
             )}
           >

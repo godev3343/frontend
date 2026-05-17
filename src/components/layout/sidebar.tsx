@@ -1,10 +1,11 @@
 // src/components/layout/sidebar.tsx
 'use client';
 
-import { Calendar, Map, MapPin, Sparkles, User, Users } from 'lucide-react';
+import { Calendar, Map, Sparkles, User, Users } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
+import { Logo } from '@/components/brand/logo';
 import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
@@ -14,6 +15,16 @@ const NAV_ITEMS = [
   { href: '/profile', label: 'Профиль', icon: User },
 ] as const;
 
+/**
+ * Sidebar — desktop-навигация (md+).
+ *
+ * v2 (OKLCH):
+ *   - bg-gray-900/95 → bg-card (наш surface)
+ *   - border-gray-700 → border-border
+ *   - gray-* текст → muted-foreground / foreground
+ *   - Логотип через общий <Logo size="sm"> вместо ручного квадрата
+ *   - Активный пункт: bg-primary/15 text-primary (лайм pill)
+ */
 export function Sidebar() {
   const pathname = usePathname();
 
@@ -21,25 +32,23 @@ export function Sidebar() {
     <aside
       className={cn(
         'fixed inset-y-0 left-0 z-40 hidden w-64 flex-col md:flex',
-        'border-r border-gray-700 bg-gray-900/95 backdrop-blur-lg',
+        'bg-card border-r border-border',
       )}
       aria-label="Основная навигация"
     >
-      {/* Logo */}
-      <div className="flex h-20 items-center gap-3 border-b border-gray-700 px-6">
-        <div className="bg-brand-gradient shadow-glow-purple flex size-10 items-center justify-center rounded-2xl">
-          <MapPin className="size-5 text-white" strokeWidth={2.5} />
-        </div>
+      {/* Brand block */}
+      <div className="flex h-20 items-center gap-3 border-b border-border px-6">
+        <Logo size="sm" showBadge={false} />
         <div className="flex flex-col">
-          <span className="font-bold text-white">Go</span>
-          <span className="flex items-center gap-1 text-xs text-gray-400">
+          <span className="text-foreground font-bold">Go</span>
+          <span className="text-muted-foreground flex items-center gap-1 text-xs">
             <Sparkles className="size-3" />
             оживи город
           </span>
         </div>
       </div>
 
-      {/* Nav */}
+      {/* Nav links */}
       <ul className="flex-1 space-y-1 p-3">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const isActive = href === '/' ? pathname === '/' : pathname.startsWith(href);
@@ -50,10 +59,10 @@ export function Sidebar() {
                 aria-current={isActive ? 'page' : undefined}
                 className={cn(
                   'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium',
-                  'transition-all duration-200',
+                  'transition-colors duration-200',
                   isActive
-                    ? 'bg-purple-500/20 text-purple-300'
-                    : 'text-gray-400 hover:bg-gray-800 hover:text-white',
+                    ? 'bg-primary/15 text-primary'
+                    : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
                 )}
               >
                 <Icon className="size-5" strokeWidth={isActive ? 2.5 : 2} />

@@ -33,7 +33,7 @@ export function UserAvatar({ src, name, size = 'md', active, className }: UserAv
       className={cn(
         'relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full',
         'bg-gray-800 font-semibold text-white',
-        active && 'ring-offset-background ring-2 ring-purple-500 ring-offset-2',
+        active && 'ring-offset-background ring-2 ring-primary ring-offset-2',
         box,
         className,
       )}

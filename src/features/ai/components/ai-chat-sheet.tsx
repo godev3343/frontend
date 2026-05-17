@@ -87,7 +87,7 @@ export function AiChatSheet({ open, onOpenChange }: Props) {
       >
         <SheetHeader className="border-b border-gray-800 pb-4">
           <SheetTitle className="flex items-center gap-2">
-            <Sparkles className="size-5 text-purple-400" />
+          <Sparkles className="size-5 text-primary" />
             AI «Куда пойти?»
           </SheetTitle>
           <SheetDescription>
@@ -109,7 +109,7 @@ export function AiChatSheet({ open, onOpenChange }: Props) {
           {messages.map((msg) =>
             msg.role === "user" ? (
               <div key={msg.id} className="flex justify-end">
-                <div className="max-w-[85%] rounded-2xl rounded-br-sm bg-purple-600 px-4 py-2 text-sm text-white">
+              <div className="max-w-[85%] rounded-2xl rounded-br-sm bg-primary text-primary-foreground px-4 py-2 text-sm">
                   {msg.content}
                 </div>
               </div>
@@ -134,9 +134,9 @@ export function AiChatSheet({ open, onOpenChange }: Props) {
 
           {mutation.isPending && (
             <div className="flex items-center gap-2 text-sm text-gray-400">
-              <span className="size-2 animate-pulse rounded-full bg-purple-400" />
-              <span className="size-2 animate-pulse rounded-full bg-purple-400 [animation-delay:150ms]" />
-              <span className="size-2 animate-pulse rounded-full bg-purple-400 [animation-delay:300ms]" />
+              <span className="size-2 animate-pulse rounded-full bg-primary" />
+              <span className="size-2 animate-pulse rounded-full bg-primary [animation-delay:150ms]" />
+              <span className="size-2 animate-pulse rounded-full bg-primary [animation-delay:300ms]" />
               <span className="ml-1">Думаю…</span>
             </div>
           )}

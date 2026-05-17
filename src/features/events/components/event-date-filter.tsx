@@ -60,7 +60,7 @@ export function EventDateFilter({ value, onChange }: Props) {
               "shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
               "border border-gray-700/50",
               isActive
-                ? "bg-purple-500 text-white border-purple-500"
+              ? "bg-primary text-primary-foreground border-primary"
                 : "bg-gray-800/60 text-gray-200 hover:bg-gray-700/70",
             )}
           >

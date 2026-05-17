@@ -110,7 +110,7 @@ function PointsRow({ tx }: { tx: PointsTransaction }) {
         className={cn(
           "flex size-10 shrink-0 items-center justify-center rounded-full",
           isPositive
-            ? "bg-purple-500/20 text-purple-300"
+            ? "bg-primary/15 text-primary"
             : "bg-red-500/20 text-red-300",
         )}
         aria-hidden
@@ -131,7 +131,7 @@ function PointsRow({ tx }: { tx: PointsTransaction }) {
       <div
         className={cn(
           "shrink-0 text-base font-semibold tabular-nums",
-          isPositive ? "text-purple-300" : "text-red-300",
+          isPositive ? "text-primary" : "text-destructive",
         )}
         aria-label={`${isPositive ? "плюс" : "минус"} ${Math.abs(tx.delta)} поинтов`}
       >

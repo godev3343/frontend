@@ -23,7 +23,7 @@ export function AttendanceButton({ eventId, isGoing }: Props) {
       disabled={mut.isPending}
       className={cn(
         "w-full gap-1.5",
-        isGoing && "bg-purple-500 hover:bg-purple-600",
+        isGoing && "bg-primary text-primary-foreground hover:brightness-105",
       )}
     >
       {mut.isPending ? (

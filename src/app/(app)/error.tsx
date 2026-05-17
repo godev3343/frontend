@@ -20,7 +20,7 @@ export default function AppError({
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center gap-6 px-4 py-12 text-center">
-      <div className="bg-card-gradient rounded-3xl p-8 shadow-2xl">
+      <div className="bg-card border border-border rounded-3xl p-8 shadow-2xl">
         <h1 className="text-2xl font-bold text-white">Что-то пошло не так</h1>
         <p className="mt-2 max-w-sm text-sm text-gray-400">
           Мы получили уведомление об ошибке и уже разбираемся. Попробуй ещё раз — обычно помогает.

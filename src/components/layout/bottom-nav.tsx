@@ -18,6 +18,17 @@ const NAV_ITEMS = [
   { href: '/profile', label: 'Профиль', icon: User },
 ] as const;
 
+/**
+ * BottomNav — floating-glass pill для mobile.
+ *
+ * v2 (прототип go-app.jsx::TabBar):
+ *   - inset-x-0 bottom-0 → bottom-6 left-3 right-3 (floating, с отступами)
+ *   - h-20 → h-16 (64px, как в прототипе)
+ *   - border-top → утилита .glass (полупрозрачный + blur)
+ *   - rounded-xl (24px — pill-форма)
+ *   - shadow-float (мягкая тень для floating-элементов)
+ *   - Активный таб — пилюля bg-secondary вокруг иконки+лейбла, не просто цвет иконки
+ */
 export function BottomNav() {
   const pathname = usePathname();
   // Тихо: если useMe не готов (не залогинен / refresh идёт) — points = 0,
@@ -28,100 +39,118 @@ export function BottomNav() {
   return (
     <nav
       className={cn(
-        'fixed inset-x-0 bottom-0 z-40 h-20 md:hidden',
-        'border-t border-gray-700 bg-gray-800/95 backdrop-blur-lg',
-        'pb-[env(safe-area-inset-bottom)]',
+        // floating positioning
+        'fixed bottom-6 left-3 right-3 z-40 h-16 md:hidden',
+        // safe area (для iPhone X+ с домашней зоной)
+        'mb-[env(safe-area-inset-bottom)]',
+        // glass-эффект + pill-форма + тень
+        'glass rounded-xl shadow-float',
+        // внутренний padding для пилюль табов
+        'px-1.5',
       )}
       aria-label="Основная навигация"
     >
-      <ul className="grid h-full grid-cols-6 px-2">
-        {NAV_ITEMS.slice(0, 2).map(({ href, label, icon: Icon }) => {
-          const isActive = href === '/' ? pathname === '/' : pathname.startsWith(href);
-          return (
-            <li key={href} className="flex">
-              <Link
-                href={href}
-                aria-current={isActive ? 'page' : undefined}
-                className={cn(
-                  'group/nav-item flex flex-1 flex-col items-center justify-center gap-1',
-                  'min-h-11 transition-colors duration-200',
-                  isActive ? 'text-purple-400' : 'text-gray-400 hover:text-gray-200',
-                )}
-              >
-                <Icon
-                  className={cn(
-                    'size-6 transition-transform duration-200',
-                    isActive && 'scale-110',
-                  )}
-                  strokeWidth={isActive ? 2.5 : 2}
-                />
-                <span className="text-xs font-medium">{label}</span>
-              </Link>
-            </li>
-          );
-        })}
+      <ul className="grid h-full grid-cols-6 gap-1">
+        {NAV_ITEMS.slice(0, 2).map(({ href, label, icon: Icon }) => (
+          <NavItem
+            key={href}
+            href={href}
+            label={label}
+            icon={Icon}
+            pathname={pathname}
+          />
+        ))}
 
         <li className="flex">
           <AiNavButton />
         </li>
 
-        {NAV_ITEMS.slice(2).map(({ href, label, icon: Icon }) => {
-          const isActive = href === '/' ? pathname === '/' : pathname.startsWith(href);
-          const isProfile = href === '/profile';
-
-          return (
-            <li key={href} className="flex">
-              <Link
-                href={href}
-                aria-current={isActive ? 'page' : undefined}
-                className={cn(
-                  'group/nav-item flex flex-1 flex-col items-center justify-center gap-1',
-                  'min-h-11 transition-colors duration-200',
-                  isActive ? 'text-purple-400' : 'text-gray-400 hover:text-gray-200',
-                )}
-              >
-                <span className="relative">
-                  <Icon
-                    className={cn(
-                      'size-6 transition-transform duration-200',
-                      isActive && 'scale-110',
-                    )}
-                    strokeWidth={isActive ? 2.5 : 2}
-                  />
-                  {isProfile && points > 0 && (
-                    <ProfilePointsBubble points={points} />
-                  )}
-                </span>
-                <span className="text-xs font-medium">{label}</span>
-              </Link>
-            </li>
-          );
-        })}
+        {NAV_ITEMS.slice(2).map(({ href, label, icon: Icon }) => (
+          <NavItem
+            key={href}
+            href={href}
+            label={label}
+            icon={Icon}
+            pathname={pathname}
+            showPointsBubble={href === '/profile' && points > 0}
+            points={points}
+          />
+        ))}
       </ul>
     </nav>
   );
 }
 
 /**
+ * Пункт навигации с активным состоянием как пилюля.
+ * Вынесен в отдельный компонент чтобы не дублировать разметку
+ * между ".slice(0, 2)" и ".slice(2)".
+ */
+function NavItem({
+  href,
+  label,
+  icon: Icon,
+  pathname,
+  showPointsBubble = false,
+  points = 0,
+}: {
+  href: string;
+  label: string;
+  icon: typeof Map;
+  pathname: string;
+  showPointsBubble?: boolean;
+  points?: number;
+}) {
+  const isActive = href === '/' ? pathname === '/' : pathname.startsWith(href);
+
+  return (
+    <li className="flex">
+      <Link
+        href={href}
+        aria-current={isActive ? 'page' : undefined}
+        className={cn(
+          'group/nav-item flex flex-1 flex-col items-center justify-center gap-0.5 rounded-lg',
+          'min-h-11 transition-all duration-200',
+          // активный — пилюля surface-hi (как в прототипе TabBar строки 1037-1049)
+          isActive
+            ? 'bg-secondary text-foreground'
+            : 'text-[color:var(--text-mute)] hover:text-foreground hover:bg-secondary/40',
+        )}
+      >
+        <span className="relative">
+          <Icon
+            className="size-5"
+            strokeWidth={isActive ? 2.5 : 1.6}
+          />
+          {showPointsBubble && <ProfilePointsBubble points={points} />}
+        </span>
+        <span className={cn('text-[10px]', isActive ? 'font-semibold' : 'font-medium')}>
+          {label}
+        </span>
+      </Link>
+    </li>
+  );
+}
+
+/**
  * Маленький бейдж-пузырёк с числом поинтов поверх иконки профиля.
- * Не используем `PointsBadge` напрямую — нам нужен очень компактный вариант
- * (≤8px текста), а PointsBadge даёт минимум h-6 с иконкой.
- * Pulse-анимацию делаем тем же keyframe, что и в PointsBadge — ленивая
- * инжекция через useEffect, чтобы не дублировать <style>.
+ *
+ * v2: обводка через ring-2 ring-background — резолвится из токена,
+ * автоматически работает на любом фоне (glass, surface, что угодно).
+ * Раньше был hardcoded rgb(31,41,55) — мог разъехаться при смене темы.
  */
 function ProfilePointsBubble({ points }: { points: number }) {
-  const display = points >= 1000
-    ? `${(points / 1000).toFixed(1).replace(/\.0$/, '')}K`
-    : String(points);
+  const display =
+    points >= 1000 ? `${(points / 1000).toFixed(1).replace(/\.0$/, '')}K` : String(points);
 
   return (
     <span
       className={cn(
         'absolute -right-2 -top-1.5',
         'inline-flex h-4 min-w-[1rem] items-center justify-center',
-        'rounded-full bg-purple-500 px-1',
-        'text-[10px] font-bold leading-none text-white',
-        'shadow-[0_0_0_2px_rgb(31,41,55)]', // обводка в цвет фона nav (gray-800)
+        'rounded-full bg-primary text-primary-foreground px-1',
+        'text-[10px] font-bold leading-none',
+        'ring-2 ring-background',
       )}
       aria-label={`${points} поинтов`}
     >

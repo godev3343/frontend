@@ -11,18 +11,24 @@ import { cn } from '@/lib/utils';
  * AiChatSheet тащит за собой react-textarea-autosize, sonner, polling-логику —
  * это ~30KB. Большинство пользователей в одной сессии его не открывает.
  * Загружаем только когда пользователь нажал FAB.
- *
- * ssr: false ок — компонент клиентский, на SSR не рендерится в любом случае.
  */
-const AiChatSheet = dynamic(
-  () => import('./ai-chat-sheet').then((m) => m.AiChatSheet),
-  { ssr: false },
-);
+const AiChatSheet = dynamic(() => import('./ai-chat-sheet').then((m) => m.AiChatSheet), {
+  ssr: false,
+});
 
 interface Props {
   className?: string;
 }
 
+/**
+ * AI-FAB — кнопка вызова AI-помощника поверх контента.
+ *
+ * Позиционирование не задаём — родитель отвечает за position/inset.
+ * См. city-map.tsx — FAB живёт в стэке `absolute bottom-32 right-3`
+ * вместе с гео-кнопкой и MapLibre zoom-контролами.
+ *
+ * v2 (OKLCH): лайм + центрированный глоу.
+ */
 export function AiFab({ className }: Props) {
   const [open, setOpen] = useState(false);
 
@@ -33,16 +39,18 @@ export function AiFab({ className }: Props) {
         onClick={() => setOpen(true)}
         aria-label="Открыть AI-помощник"
         className={cn(
-          'pointer-events-auto rounded-full p-3 text-white shadow-lg border',
-          'bg-purple-600 border-purple-400/40 hover:bg-purple-500',
-          'transition-colors',
-          className,
-        )}
+  // shape + size — строго 48x48 как MapLibre-кнопки и Geo-кнопка
+          'inline-flex h-12 w-12 items-center justify-center rounded-full border',
+  // color + glow
+          'bg-primary text-primary-foreground border-primary/40 shadow-glow-accent-center',
+  // interactivity
+          'transition-all hover:brightness-105 active:opacity-90',
+          'pointer-events-auto',
+        className,
+      )}
       >
         <Sparkles className="size-5" aria-hidden />
       </button>
-      {/* Sheet монтируется только когда open=true, что отложит загрузку
-          до первого клика. Дальше react-кэш — повторно не качаем. */}
       {open && <AiChatSheet open={open} onOpenChange={setOpen} />}
     </>
   );

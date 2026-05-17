@@ -20,7 +20,7 @@ export function EventCard({ event }: Props) {
   return (
     <Link
       href={`/events/${event.id}`}
-      className="border-border bg-card group/event flex flex-col overflow-hidden rounded-2xl border transition-colors hover:border-purple-500/60"
+      className="border-border bg-card group/event flex flex-col overflow-hidden rounded-2xl border transition-colors hover:border-primary/60"
     >
       <div className="relative aspect-[16/9] w-full overflow-hidden bg-gray-800">
         {event.cover_url ? (

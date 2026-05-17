@@ -85,8 +85,8 @@ export function PointsBadge({
           ? "h-6 px-2 text-xs [&_svg]:size-3"
           : "h-7 px-3 text-sm [&_svg]:size-3.5",
         isGradient
-          ? "bg-brand-gradient shadow-glow-purple text-white"
-          : "bg-purple-500/20 text-purple-300",
+          ?  "bg-primary text-primary-foreground shadow-glow-accent-center  "
+          : "bg-primary/15 text-primary",
         className,
       )}
       style={

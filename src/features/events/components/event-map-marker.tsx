@@ -34,7 +34,7 @@ export function EventMapMarker({ event }: Props) {
       }}
     >
       <div
-        className="flex size-8 cursor-pointer items-center justify-center rounded-full border-2 border-white bg-purple-500 shadow-lg transition-transform hover:scale-110"
+        className="flex size-8 cursor-pointer items-center justify-center rounded-full border-2 border-background bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-110"
         title={event.title}
       >
         <Calendar className="size-4 text-white" />

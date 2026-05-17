@@ -66,14 +66,14 @@ pointsExtra={
     {env.NEXT_PUBLIC_FEATURE_POINTS_HISTORY && (
       <Link
         href="/profile/points"
-        className="text-purple-400 underline-offset-2 hover:underline focus-visible:underline"
+        className="text-primary underline-offset-2 hover:underline focus-visible:underline"
       >
         История
       </Link>
     )}
     <Link
       href="/profile/achievements"
-      className="text-purple-400 underline-offset-2 hover:underline focus-visible:underline"
+      className="text-primary underline-offset-2 hover:underline focus-visible:underline"
     >
       Достижения
     </Link>

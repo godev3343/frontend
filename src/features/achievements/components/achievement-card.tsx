@@ -26,7 +26,7 @@ export function AchievementCard({ achievement }: Props) {
           понимал к чему стремится */}
       {isUnlocked ? (
         <Check
-          className="absolute right-3 top-3 size-5 text-purple-400"
+        className="absolute right-3 top-3 size-5 text-primary"
           strokeWidth={3}
         />
       ) : (
@@ -36,7 +36,7 @@ export function AchievementCard({ achievement }: Props) {
       <div
         className={cn(
           "flex size-14 items-center justify-center rounded-full",
-          isUnlocked ? "bg-purple-500/20" : "bg-muted",
+        isUnlocked ? "bg-primary/15" : "bg-muted",
         )}
       >
         {achievement.icon_url ? (
@@ -52,7 +52,7 @@ export function AchievementCard({ achievement }: Props) {
           <Trophy
             className={cn(
               "size-7",
-              isUnlocked ? "text-purple-400" : "text-muted-foreground",
+            isUnlocked ? "text-primary" : "text-muted-foreground",
             )}
           />
         )}
@@ -73,7 +73,7 @@ export function AchievementCard({ achievement }: Props) {
       </div>
 
       {isUnlocked && (
-        <p className="text-xs text-purple-400">
+        <p className="text-xs text-primary">
           Получено{" "}
           {new Date(achievement.unlocked_at!).toLocaleDateString("ru-RU", {
             day: "numeric",

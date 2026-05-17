@@ -29,7 +29,7 @@ export function AiNavButton() {
         className={cn(
           'flex flex-1 flex-col items-center justify-center gap-1',
           'min-h-11 text-gray-400 transition-colors duration-200',
-          'hover:text-purple-300',
+          'hover:text-primary',
         )}
       >
         <Sparkles className="size-6" strokeWidth={2} aria-hidden />

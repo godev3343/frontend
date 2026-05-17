@@ -77,11 +77,11 @@ export function RecommendationCard({ recommendation, onOpenOnMap }: Props) {
 
         <div
           className={cn(
-            "flex gap-2 rounded-xl border border-purple-500/30 bg-purple-500/5 p-3",
-            "text-sm italic text-gray-200",
+            "flex gap-2 rounded-xl border border-primary/30 bg-primary/5 p-3",
+            "flex gap-2 rounded-xl border border-primary/30 bg-primary/5 p-3",
           )}
         >
-          <Sparkles className="mt-0.5 size-4 shrink-0 text-purple-400" />
+          <Sparkles className="mt-0.5 size-4 shrink-0 text-primary" />
           <p className="leading-relaxed">{recommendation.reasoning}</p>
         </div>
 
