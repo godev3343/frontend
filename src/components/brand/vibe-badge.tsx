@@ -11,6 +11,7 @@ import {
   Users,
 } from 'lucide-react';
 
+import { VIBE_COLORS } from '@/features/map/lib/vibe-colors';
 import { cn } from '@/lib/utils';
 
 export const VIBE_TAGS = [
@@ -25,14 +26,19 @@ export const VIBE_TAGS = [
 
 export type VibeTag = (typeof VIBE_TAGS)[number];
 
-const VIBE_META: Record<VibeTag, { label: string; icon: LucideIcon }> = {
-  calm: { label: 'Спокойно', icon: Coffee },
-  active: { label: 'Активно', icon: Flame },
-  productive: { label: 'Продуктивно', icon: Briefcase },
-  romantic: { label: 'Романтично', icon: Heart },
-  musical: { label: 'Музыкально', icon: Music },
-  gaming: { label: 'Игровое', icon: Gamepad2 },
-  networking: { label: 'Нетворкинг', icon: Users },
+/**
+ * Иконки — отдельный маппинг, потому что VIBE_COLORS живёт в map-фичe
+ * и не должна знать о Lucide. Лейблы наоборот берём из VIBE_COLORS —
+ * чтобы маркер на карте, фильтр и бейдж показывали ОДНУ И ТУ ЖЕ подпись.
+ */
+const VIBE_ICONS: Record<VibeTag, LucideIcon> = {
+  calm: Coffee,
+  active: Flame,
+  productive: Briefcase,
+  romantic: Heart,
+  musical: Music,
+  gaming: Gamepad2,
+  networking: Users,
 };
 
 const vibeBadgeVariants = cva(
@@ -45,12 +51,8 @@ const vibeBadgeVariants = cva(
         lg: 'h-8 px-3.5 text-sm [&_svg]:size-4',
       },
       variant: {
-        // Цвет + полупрозрачный фон того же цвета — по design.md Status Badge
-        // bg уровень 20%, text — полный
         soft: '',
-        // Solid — для активного фильтра
         solid: 'text-white',
-        // Outline — для неактивного фильтра
         outline: 'bg-transparent ring-1 ring-inset',
       },
     },
@@ -63,16 +65,16 @@ const vibeBadgeVariants = cva(
 
 type VibeBadgeProps = {
   vibe: VibeTag;
+  /** Кастомный лейбл; по умолчанию — VIBE_COLORS[vibe].label */
   label?: string;
   className?: string;
 } & VariantProps<typeof vibeBadgeVariants>;
 
 export function VibeBadge({ vibe, label, size, variant, className }: VibeBadgeProps) {
-  const meta = VIBE_META[vibe];
-  const Icon = meta.icon;
+  const Icon = VIBE_ICONS[vibe];
+  const defaultLabel = VIBE_COLORS[vibe].label;
   const cssVar = `var(--color-vibe-${vibe})`;
 
-  // Используем inline style для динамического цвета — Tailwind не умеет в шаблонные JIT
   const colorStyle =
     variant === 'solid'
       ? { backgroundColor: cssVar }
@@ -87,7 +89,7 @@ export function VibeBadge({ vibe, label, size, variant, className }: VibeBadgePr
       data-vibe={vibe}
     >
       <Icon />
-      {label ?? meta.label}
+      {label ?? defaultLabel}
     </span>
   );
 }

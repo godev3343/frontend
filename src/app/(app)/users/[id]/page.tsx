@@ -59,6 +59,7 @@ export default function UserProfilePage() {
           points: data.points,
         }}
         status={data.status}                // ← НОВОЕ
+        topVibes={[]}                       // бэк-долг #4: data.top_vibes
         action={
           <FriendshipButton
             userId={data.id}

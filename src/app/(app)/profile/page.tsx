@@ -59,7 +59,8 @@ export default function ProfilePage() {
           checkins: me.checkins_count,
           points: me.points,
         }}
-        status={me.status}                  // ← НОВОЕ
+        status={me.status}
+        topVibes={[]}                       // бэк-долг #4: me.top_vibes
         animatePoints
 pointsExtra={
   <div className="flex items-center gap-3 text-xs">

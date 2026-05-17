@@ -4,8 +4,8 @@
 import { endOfDay, endOfMonth, endOfWeek, startOfDay } from "date-fns";
 import { useMemo } from "react";
 
+import { ToggleChip } from "@/components/ui/toggle-chip";
 import { type DateRange } from "@/features/events/query-keys";
-import { cn } from "@/lib/utils";
 
 type Preset = "today" | "week" | "month" | "all";
 
@@ -48,27 +48,15 @@ export function EventDateFilter({ value, onChange }: Props) {
 
   return (
     <div className="flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-      {buttons.map((p) => {
-        const isActive = p.value === value;
-        return (
-          <button
-            key={p.value}
-            type="button"
-            onClick={() => onChange(p.value, presetToRange(p.value))}
-            // Стиль идентичен vibe-filter-bar'у: pill, активный = bg-primary,
-            // неактивный = bg-secondary/60. Единый паттерн toggle-чипа.
-            // (См. долг A5 в TODO — выносить в общий ToggleChip; пока inline.)
-            className={cn(
-              "shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors border",
-              isActive
-                ? "bg-primary text-primary-foreground border-primary"
-                : "bg-secondary/60 text-foreground border-border hover:bg-secondary",
-            )}
-          >
-            {p.label}
-          </button>
-        );
-      })}
+      {buttons.map((p) => (
+        <ToggleChip
+          key={p.value}
+          active={p.value === value}
+          onClick={() => onChange(p.value, presetToRange(p.value))}
+        >
+          {p.label}
+        </ToggleChip>
+      ))}
     </div>
   );
 }

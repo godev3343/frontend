@@ -7,34 +7,62 @@ import { Compass, Crown, Footprints, MapPinned, Sparkle } from "lucide-react";
 import type { StatusCode, UserStatus } from "@/features/points/status-schema";
 import { cn } from "@/lib/utils";
 
+/**
+ * Статусы — пять уровней по карме. Цвета:
+ *   - guest → muted (приглушённый, новичок)
+ *   - explorer → cyan (свежий, исследует, hue=195, см. globals.css)
+ *   - navigator → primary lime (середняк, знает город)
+ *   - insider → amber-gold (узнаёт инсайдерские места, hue=50)
+ *   - legend → solid primary с glow (топ, как CTA)
+ *
+ * Раньше explorer/insider были tailwind-hex (cyan-500/pink-500) —
+ * выпадали из OKLCH-палитры. Заменены на токены в PR5-A7.
+ */
 type Visual = {
   icon: LucideIcon;
-  /**
-   * Tailwind-классы цвета/фона для каждого статуса.
-   *
-   * v2 (OKLCH):
-   *   - guest → muted (приглушённый surface) через токены
-   *   - navigator → primary (лайм-акцент, есть в системе)
-   *   - legend → solid primary с глоу (соответствует CTA)
-   *   - explorer/insider — пока на cyan/pink из tailwind-палитры; в системе
-   *     для них нет специальных токенов. TODO: определить статус-цвета в
-   *     рамках дизайн-системы (отдельная задача, не редизайн-миграция).
-   */
   className: string;
+  /** Inline-цвета, если не покрывается tailwind-токенами. */
+  style?: React.CSSProperties;
 };
 
 const STATUS_VISUALS: Record<StatusCode, Visual> = {
-  guest:     { icon: Footprints, className: "bg-muted/40 text-muted-foreground ring-1 ring-inset ring-border" },
-  explorer:  { icon: Compass,    className: "bg-cyan-500/15 text-cyan-300 ring-1 ring-inset ring-cyan-500/30" },
-  navigator: { icon: MapPinned,  className: "bg-primary/15 text-primary ring-1 ring-inset ring-primary/30" },
-  insider:   { icon: Sparkle,    className: "bg-pink-500/20 text-pink-300 ring-1 ring-inset ring-pink-500/30" },
-  legend:    { icon: Crown,      className: "bg-primary text-primary-foreground shadow-glow-accent" },
+  guest: {
+    icon: Footprints,
+    className: "bg-muted/40 text-muted-foreground ring-1 ring-inset ring-border",
+  },
+  explorer: {
+    icon: Compass,
+    className: "ring-1 ring-inset",
+    style: {
+      backgroundColor: "color-mix(in oklab, var(--color-status-explorer) 18%, transparent)",
+      color: "var(--color-status-explorer)",
+      // Через CSS-переменную задаём цвет рамки — tailwind-класс `ring` берёт его из `--tw-ring-color`,
+      // но мы используем box-shadow напрямую через ring-inset, поэтому проще через style.
+      boxShadow: "inset 0 0 0 1px color-mix(in oklab, var(--color-status-explorer) 30%, transparent)",
+    },
+  },
+  navigator: {
+    icon: MapPinned,
+    className: "bg-primary/15 text-primary ring-1 ring-inset ring-primary/30",
+  },
+  insider: {
+    icon: Sparkle,
+    className: "ring-1 ring-inset",
+    style: {
+      backgroundColor: "color-mix(in oklab, var(--color-status-insider) 20%, transparent)",
+      color: "var(--color-status-insider)",
+      boxShadow: "inset 0 0 0 1px color-mix(in oklab, var(--color-status-insider) 30%, transparent)",
+    },
+  },
+  legend: {
+    icon: Crown,
+    className: "bg-primary text-primary-foreground shadow-glow-accent",
+  },
 };
 
 type StatusBadgeProps = {
   status: UserStatus;
   size?: "sm" | "md";
-  /** Скрыть label, оставить только иконку (компактные места). */
   iconOnly?: boolean;
   className?: string;
 };
@@ -59,6 +87,7 @@ export function StatusBadge({
         visual.className,
         className,
       )}
+      style={visual.style}
       aria-label={`Статус: ${status.name}`}
       title={status.name}
     >

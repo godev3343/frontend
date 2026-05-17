@@ -42,7 +42,7 @@ export function RecommendationCard({ recommendation, onOpenOnMap }: Props) {
 
   const photo = place.photos[0];
   const vibeKey = recommendation.vibe_match ?? place.primary_vibe;
-  const vibeColor = VIBE_COLORS[vibeKey].hex;
+  const vibeColor = VIBE_COLORS[vibeKey].value;
 
   // Для featured-gradient'а используем все вайбы места, а не один primary.
   // Если бэк нам отдал vibe_match (AI-выбранный) — он становится первым,

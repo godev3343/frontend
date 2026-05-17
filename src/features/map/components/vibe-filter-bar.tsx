@@ -1,6 +1,7 @@
 // src/features/map/components/vibe-filter-bar.tsx
 "use client";
 
+import { ToggleChip } from "@/components/ui/toggle-chip";
 import { useAiSheetStore } from "@/features/ai/lib/ai-sheet-store";
 import { useVibeFilter } from "@/features/map/hooks/use-vibe-filter";
 import { VIBE_COLORS, VIBE_LIST } from "@/features/map/lib/vibe-colors";
@@ -11,13 +12,6 @@ interface Props {
   onToggleEvents: () => void;
 }
 
-/**
- * VibeFilterBar — горизонтальный скролл-стрип с фильтрами по вайбам + переключатель событий.
- *
- * Скрывается с fade-out когда открыт AI-Sheet (читает useAiSheetStore).
- * Иначе фильтры торчат на фоне AI-чата и сбивают фокус — юзер в AI
- * формулирует запрос, фильтры карты в этот момент смысловой шум.
- */
 export function VibeFilterBar({ showEvents, onToggleEvents }: Props) {
   const { selected, toggle } = useVibeFilter();
   const aiOpen = useAiSheetStore((s) => s.open);
@@ -45,43 +39,27 @@ export function VibeFilterBar({ showEvents, onToggleEvents }: Props) {
           const isActive = selected.includes(vibe);
           const color = VIBE_COLORS[vibe];
           return (
-            <button
+            <ToggleChip
               key={vibe}
-              type="button"
+              active={isActive}
+              activeColor={color.value}
+              size="sm"
               onClick={() => toggle(vibe)}
-              className={cn(
-                "shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-200",
-                "border",
-                isActive
-                  ? "text-background border-transparent"
-                  : "bg-secondary/60 text-foreground border-border hover:bg-secondary",
-              )}
-              style={
-                isActive
-                  ? { backgroundColor: color.hex, borderColor: color.hex }
-                  : undefined
-              }
             >
               {color.label}
-            </button>
+            </ToggleChip>
           );
         })}
 
         <div className="w-px shrink-0 self-stretch bg-border" />
 
-        <button
-          type="button"
+        <ToggleChip
+          active={showEvents}
+          size="sm"
           onClick={onToggleEvents}
-          className={cn(
-            "shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-200",
-            "border",
-            showEvents
-              ? "bg-primary text-primary-foreground border-primary"
-              : "bg-secondary/60 text-foreground border-border hover:bg-secondary",
-          )}
         >
           События
-        </button>
+        </ToggleChip>
       </div>
     </div>
   );

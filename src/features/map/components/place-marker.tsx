@@ -52,7 +52,7 @@ export function PlaceMarker({ place, active, onClick }: Props) {
             style={{
               background: active
                 ? `radial-gradient(circle, ${color.glow} 0%, transparent 70%)`
-                : `radial-gradient(circle, ${color.hex} 0%, transparent 55%)`,
+                : `radial-gradient(circle, ${color.value} 0%, transparent 55%)`,
               opacity: active ? 1 : 0.35,
               transform: active ? "scale(1.2)" : "scale(1)",
             }}
@@ -64,7 +64,7 @@ export function PlaceMarker({ place, active, onClick }: Props) {
           style={{
             width: active ? 18 : 14,
             height: active ? 18 : 14,
-            backgroundColor: color.hex,
+            backgroundColor: color.value,
             border: "2px solid #ffffff",
             boxShadow: "0 0 0 2px rgba(0,0,0,0.35)",
           }}
