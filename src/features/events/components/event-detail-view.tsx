@@ -47,7 +47,7 @@ export function EventDetailView({ eventId }: Props) {
   }
 
   const startDate = new Date(event.starts_at);
-  const dateLabel = format(startDate, "EEEE, d MMMM, HH:mm", { locale: ru });
+  const dateLabel = format(startDate, "EEE, d MMM · HH:mm", { locale: ru });
   const endDate = event.ends_at ? new Date(event.ends_at) : null;
   const endLabel = endDate ? format(endDate, "HH:mm", { locale: ru }) : null;
 
@@ -87,7 +87,7 @@ export function EventDetailView({ eventId }: Props) {
         <div className="text-muted-foreground flex flex-col gap-2 text-sm">
           <div className="flex items-center gap-2">
             <Calendar className="size-4 shrink-0" />
-            <span>
+            <span className="text-mono-label">
               {dateLabel}
               {endLabel && ` – ${endLabel}`}
             </span>

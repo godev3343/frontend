@@ -8,8 +8,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePlaceDetail } from "@/features/map/hooks/use-place-detail";
-import { VIBE_COLORS } from "@/features/map/lib/vibe-colors";
-import { cn } from "@/lib/utils";
+import { getFeaturedGradient,VIBE_COLORS } from "@/features/map/lib/vibe-colors";
 
 import type { AiRecommendation } from "../schemas";
 
@@ -34,7 +33,6 @@ export function RecommendationCard({ recommendation, onOpenOnMap }: Props) {
   }
 
   if (isError || !place) {
-    // Place not found — drop silently and log. Per EPIC 8.6 pitfall.
     Sentry.captureMessage("ai_recommendation_missing_place", {
       level: "warning",
       extra: { place_id: recommendation.place_id },
@@ -46,13 +44,21 @@ export function RecommendationCard({ recommendation, onOpenOnMap }: Props) {
   const vibeKey = recommendation.vibe_match ?? place.primary_vibe;
   const vibeColor = VIBE_COLORS[vibeKey].hex;
 
+  // Для featured-gradient'а используем все вайбы места, а не один primary.
+  // Если бэк нам отдал vibe_match (AI-выбранный) — он становится первым,
+  // остальные допихиваются для второго градиента.
+  // Гарантируем что vibeKey всегда первый (он же отображается дотом).
+  const placeVibeTags = place.vibes.map((v) => v.vibe);
+  const vibesForGradient = recommendation.vibe_match
+  ? [
+      recommendation.vibe_match,
+      ...placeVibeTags.filter((v) => v !== recommendation.vibe_match),
+    ]
+  : placeVibeTags;
+  const gradient = getFeaturedGradient(vibesForGradient);
+
   return (
-    <article
-      className={cn(
-        "space-y-3 overflow-hidden rounded-2xl border border-border",
-        "bg-card/60 backdrop-blur-sm",
-      )}
-    >
+    <article className="overflow-hidden rounded-2xl bg-card ring-1 ring-border/40">
       {photo && (
         <div className="relative h-32 w-full">
           <Image
@@ -65,7 +71,8 @@ export function RecommendationCard({ recommendation, onOpenOnMap }: Props) {
         </div>
       )}
 
-      <div className="space-y-3 px-4 pb-4">
+      <div className="space-y-3 px-4 pb-4 pt-4"
+          style={gradient ? { backgroundImage: gradient } : undefined}>
         <div className="flex items-start justify-between gap-3">
           <h3 className="text-base font-semibold text-foreground">{place.name}</h3>
           <span
@@ -75,7 +82,7 @@ export function RecommendationCard({ recommendation, onOpenOnMap }: Props) {
           />
         </div>
 
-        <div className="flex gap-2 rounded-xl border border-primary/30 bg-primary/5 p-3">
+        <div className="flex gap-2 rounded-xl border border-primary/30 bg-primary/5 p-3 backdrop-blur-sm">
           <Sparkles className="mt-0.5 size-4 shrink-0 text-primary" />
           <p className="text-sm leading-relaxed text-foreground/90">
             {recommendation.reasoning}

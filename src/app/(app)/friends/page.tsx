@@ -29,7 +29,7 @@ export default function FriendsPage() {
 
   return (
     <div className="container mx-auto max-w-3xl space-y-6 p-4">
-      <h1 className="text-2xl font-semibold">Друзья</h1>
+      <h1 className="text-3xl font-bold leading-[1.05] md:text-4xl">Друзья</h1>
 
       <SearchUsersPanel />
 

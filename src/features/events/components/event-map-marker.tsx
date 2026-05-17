@@ -11,12 +11,6 @@ interface Props {
   event: EventMarkerType;
 }
 
-/**
- * Маркер события на карте. Визуально отличается от PlaceMarker
- * (иконка Calendar в фиолетовом кружке), чтобы пользователь
- * не путал «место» и «событие».
- * Берёт координаты из place.location или собственного location.
- */
 export function EventMapMarker({ event }: Props) {
   const router = useRouter();
 
@@ -28,6 +22,9 @@ export function EventMapMarker({ event }: Props) {
       longitude={coords.lng}
       latitude={coords.lat}
       anchor="center"
+      // Event marker всегда выше обычных place'ов — иначе при совпадении
+      // координат с place его не кликнуть. См. комментарий в place-marker.tsx.
+      style={{ zIndex: 5 }}
       onClick={(e) => {
         e.originalEvent.stopPropagation();
         router.push(`/events/${event.id}`);

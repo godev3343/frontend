@@ -24,8 +24,8 @@ export default function PointsHistoryPage() {
 
       <header className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold">Поинты</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-3xl font-bold leading-[1.05] md:text-4xl">Поинты</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
             Начисления за активность
           </p>
         </div>

@@ -64,8 +64,12 @@ export function EventsList({ vibes, date }: Props) {
   return (
     <>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {events.map((e) => (
-          <EventCard key={e.id} event={e} />
+        {events.map((e, i) => (
+        <EventCard
+          key={e.id}
+          event={e}
+          featured={i === 0 && events.length >= 3}
+        />
         ))}
       </div>
       <div ref={sentinelRef} className="h-1" />

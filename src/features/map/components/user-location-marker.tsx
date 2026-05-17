@@ -9,12 +9,16 @@ interface Props {
   location: Location;
 }
 
-/**
- * Синий пульсирующий кружок «вы здесь». Не показываем при fallback на центр города.
- */
 export function UserLocationMarker({ location }: Props) {
   return (
-    <Marker longitude={location.lng} latitude={location.lat} anchor="center">
+    <Marker
+      longitude={location.lng}
+      latitude={location.lat}
+      anchor="center"
+      // Над всеми остальными маркерами — пользователь должен видеть
+      // где он, даже если на той же точке есть place/event.
+      style={{ zIndex: 20 }}
+    >
       <div className="relative h-4 w-4">
         <span className="absolute inset-0 animate-ping rounded-full bg-blue-500/40" />
         <span className="absolute inset-0 rounded-full border-2 border-white bg-blue-500 shadow-lg" />

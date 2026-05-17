@@ -66,3 +66,17 @@ export const VIBE_COLORS: Record<Vibe, { hex: string; glow: string; label: strin
 };
 
 export const VIBE_LIST = Object.keys(VIBE_COLORS) as Vibe[];
+
+export function getFeaturedGradient(vibes: readonly Vibe[]): string | null {
+  if (vibes.length === 0) return null;
+  const a = vibes[0]!;
+  const b = vibes[1] ?? a; // 1 вайб → дублируем
+  const colorA = VIBE_COLORS[a].hex;
+  const colorB = VIBE_COLORS[b].hex;
+  // Альфа задаётся через color-mix, чтобы не парсить oklch-строку.
+  // 60% от vibe в первом gradient, 45% во втором — поверх transparent.
+  return [
+    `radial-gradient(120% 100% at 0% 0%, color-mix(in oklab, ${colorA} 60%, transparent), transparent 60%)`,
+    `radial-gradient(80% 80% at 100% 100%, color-mix(in oklab, ${colorB} 45%, transparent), transparent 60%)`,
+  ].join(", ");
+}

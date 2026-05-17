@@ -25,7 +25,7 @@ export default function EventsPage() {
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-4 pb-24">
       <header className="flex flex-col gap-3">
-        <h1 className="text-2xl font-semibold">Афиша</h1>
+        <h1 className="text-3xl font-bold leading-[1.05] md:text-4xl">Афиша</h1>
         <EventDateFilter
           value={preset}
           onChange={(p, range) => {

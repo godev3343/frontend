@@ -8,19 +8,34 @@ import Image from "next/image";
 import Link from "next/link";
 
 import type { EventMarker } from "@/features/events/schemas";
-import { VIBE_COLORS } from "@/features/map/lib/vibe-colors";
+import { getFeaturedGradient, VIBE_COLORS } from "@/features/map/lib/vibe-colors";
+import { cn } from "@/lib/utils";
 
-type Props = { event: EventMarker };
+type Props = {
+  event: EventMarker;
+  /**
+   * Featured-стиль: двойной radial-gradient vibe-цветов на контент-блоке.
+   * Используется для hero-карточки в списке афиши (первая при total ≥ 3).
+   */
+  featured?: boolean;
+};
 
-export function EventCard({ event }: Props) {
+export function EventCard({ event, featured = false }: Props) {
   const startDate = new Date(event.starts_at);
-  const dateLabel = format(startDate, "d MMMM, HH:mm", { locale: ru });
+  const dateLabel = format(startDate, "d MMM · HH:mm", { locale: ru });
   const placeLabel = event.place?.name ?? "Локация в описании";
+
+  const gradient = featured ? getFeaturedGradient(event.vibes) : null;
 
   return (
     <Link
       href={`/events/${event.id}`}
-      className="border-border bg-card group/event flex flex-col overflow-hidden rounded-2xl border transition-colors hover:border-primary/60"
+      className={cn(
+        "group/event flex flex-col overflow-hidden rounded-2xl bg-card transition-colors",
+        featured
+          ? "rounded-3xl ring-1 ring-border/40 hover:ring-primary/40"
+          : "border border-border hover:border-primary/60",
+      )}
     >
       <div className="relative aspect-[16/9] w-full overflow-hidden bg-secondary">
         {event.cover_url ? (
@@ -37,16 +52,18 @@ export function EventCard({ event }: Props) {
           </div>
         )}
         {event.price && (
-          // Overlay-чип цены поверх фото. bg-background с blur — тёмный токен
-          // (oklch ~0.16), контрастный на любой картинке. Backdrop-blur делает
-          // плашку читаемой даже на ярком/пёстром cover'е.
-          <span className="absolute right-2 top-2 rounded-full bg-background/85 px-2.5 py-1 text-xs font-medium text-foreground backdrop-blur-md">
+          <span className="text-mono-label absolute right-2 top-2 rounded-full bg-background/85 px-2.5 py-1 text-foreground backdrop-blur-md">
             {event.price}
           </span>
         )}
       </div>
 
-      <div className="flex flex-col gap-2 p-4">
+      {/* Контент-блок: на featured — двойной radial-gradient vibe-цветов поверх
+          bg-card. Gradient видно весь, потому что cover-фото осталось над ним. */}
+      <div
+        className="flex flex-col gap-2 p-4"
+        style={gradient ? { backgroundImage: gradient } : undefined}
+      >
         <h3 className="line-clamp-2 text-base font-semibold leading-snug">
           {event.title}
         </h3>
@@ -57,8 +74,6 @@ export function EventCard({ event }: Props) {
             return (
               <span
                 key={v}
-                // text-background — наш тёмный токен. На ярком vibe-фоне
-                // (oklch lightness ~0.78) даёт высокий контраст без хардкода.
                 className="rounded-full px-2 py-0.5 text-[10px] font-medium text-background"
                 style={{ backgroundColor: c.hex }}
               >
@@ -68,10 +83,10 @@ export function EventCard({ event }: Props) {
           })}
         </div>
 
-        <div className="text-muted-foreground flex flex-col gap-1 text-xs">
+        <div className="flex flex-col gap-1 text-xs text-muted-foreground">
           <div className="flex items-center gap-1.5">
             <Calendar className="size-3.5 shrink-0" />
-            <span>{dateLabel}</span>
+            <span className="text-mono-label">{dateLabel}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <MapPin className="size-3.5 shrink-0" />
@@ -79,10 +94,8 @@ export function EventCard({ event }: Props) {
           </div>
           <div className="flex items-center gap-1.5">
             <Users className="size-3.5 shrink-0" />
-            <span>
-              {event.attendees_count.going} идут
-              {" · "}
-              {event.attendees_count.interested} интересно
+            <span className="text-mono-label">
+              {event.attendees_count.going} идут · {event.attendees_count.interested} интересно
             </span>
           </div>
         </div>
