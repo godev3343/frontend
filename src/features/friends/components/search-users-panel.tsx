@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 
+import { useIncomingRequests, useOutgoingRequests } from "../hooks";
 import { useSearchUsers } from "../hooks";
 import { FriendshipButton } from "./friendship-button";
 import { UserCard } from "./user-card";
@@ -15,20 +16,27 @@ import { UserCard } from "./user-card";
 /**
  * Поиск пользователей с inline-кнопкой действия по статусу дружбы.
  *
- * v2: используем FriendshipButton вместо голой "Добавить" — он сам решает
- * что рендерить по friendship_status (none/pending_outgoing/pending_incoming/
- * friends/self). Это устраняет 409 при попытке отправить дубль-заявку.
+ * Дебаунс 300мс применяется только когда юзер ВВОДИТ — при стирании поля
+ * ниже 2 символов мы мгновенно показываем плейсхолдер, без 300мс залипа
+ * со старыми результатами.
  *
- * Бэк-долг #5: UserSearchResultSerializer не отдаёт friendship_id.
- * Для pending_outgoing/incoming это значит кнопки "Отменить"/"Принять"
- * disabled. Юзер всё ещё может перейти на /users/{id} и сделать действие
- * там (UserPublicSerializer friendship_id отдаёт).
+ * Бэк-долг #5: UserSearchResultSerializer не отдаёт friendship_id, поэтому
+ * для pending_outgoing/incoming некоторые кнопки disabled.
  */
 export function SearchUsersPanel() {
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebouncedValue(query, 300);
 
-  const search = useSearchUsers(debouncedQuery);
+  // Если query короче 2 символов — игнорируем дебаунс, чтобы плейсхолдер
+  // появлялся мгновенно при стирании. Когда query валидный — берём
+  // дебаунсный (минимум сетевых запросов при печати).
+  const effectiveQuery = query.trim().length < 2 ? query : debouncedQuery;
+  const hasQuery = effectiveQuery.trim().length >= 2;
+
+  const search = useSearchUsers(effectiveQuery);
+
+  useOutgoingRequests();
+  useIncomingRequests();
 
   return (
     <div className="space-y-3">
@@ -42,7 +50,7 @@ export function SearchUsersPanel() {
         />
       </div>
 
-      {debouncedQuery.trim().length < 2 ? (
+      {!hasQuery ? (
         <p className="text-sm text-muted-foreground">
           Введите минимум 2 символа.
         </p>
@@ -68,6 +76,7 @@ export function SearchUsersPanel() {
                   userId={user.id}
                   status={user.friendship_status}
                   friendshipId={user.friendship_id}
+                  size="sm"
                 />
               }
             />
@@ -77,3 +86,4 @@ export function SearchUsersPanel() {
     </div>
   );
 }
+

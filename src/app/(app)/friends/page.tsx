@@ -57,6 +57,7 @@ export default function FriendsPage() {
                 href={`/users/${item.user.id}`}
                 action={
                   <FriendshipButton
+                    size="sm"
                     userId={item.user.id}
                     status="friends"
                     friendshipId={item.id}

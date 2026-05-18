@@ -1,10 +1,13 @@
 // src/features/reviews/components/review-form-dialog.tsx
+// Полная версия с фиксом 409 review_exists.
+
 "use client";
 
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { Star } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod/v4";
 
 import { Button } from "@/components/ui/button";
@@ -20,6 +23,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ImagePicker } from "@/features/media/image-picker";
 import type { UploadPhase } from "@/features/media/use-image-upload";
+import { extractError } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
 
 import { useCreateReview } from "../hooks/use-create-review";
@@ -40,10 +44,6 @@ type Props = {
   editing?: Review | null;
 };
 
-/**
- * `photo_busy` фазы — точно как в checkin-dialog: пока фото обрабатывается,
- * сабмит блокируем чтобы не получить 400 photo_not_ready от бэка.
- */
 function isPhotoBusy(phase: UploadPhase): boolean {
   return (
     phase === "compressing" ||
@@ -57,7 +57,6 @@ function isPhotoBusy(phase: UploadPhase): boolean {
 export function ReviewFormDialog({ placeId, open, onOpenChange, editing }: Props) {
   const isEdit = editing != null;
 
-// src/features/reviews/components/review-form-dialog.tsx
   const form = useForm<
     z.input<typeof formSchema>,
     unknown,
@@ -70,7 +69,11 @@ export function ReviewFormDialog({ placeId, open, onOpenChange, editing }: Props
     },
   });
 
-  // Сбрасываем форму при открытии — иначе сохраняются значения предыдущего отзыва
+  const [photoUrl, setPhotoUrl] = useState<string>("");
+  const [photoKey, setPhotoKey] = useState<string | null>(null);
+  const [photoTouched, setPhotoTouched] = useState(false);
+  const [photoPhase, setPhotoPhase] = useState<UploadPhase>("idle");
+
   useEffect(() => {
     if (open) {
       form.reset({
@@ -78,27 +81,44 @@ export function ReviewFormDialog({ placeId, open, onOpenChange, editing }: Props
         text: editing?.text ?? "",
       });
       setPhotoUrl(editing?.photo_url ?? "");
-      setPhotoKey(null); // существующее фото в editing мы не трогаем по дефолту
+      setPhotoKey(null);
       setPhotoTouched(false);
       setPhotoPhase("idle");
     }
   }, [open, editing, form]);
-
-  const [photoUrl, setPhotoUrl] = useState<string>("");
-  const [photoKey, setPhotoKey] = useState<string | null>(null);
-  /**
-   * `photoTouched` различает: фото не трогали (PATCH без photo_key)
-   * vs фото удалили (PATCH с photo_key=null — бэк специально это поддерживает).
-   * Это критично — иначе при редактировании текста мы случайно удалим фото.
-   */
-  const [photoTouched, setPhotoTouched] = useState(false);
-  const [photoPhase, setPhotoPhase] = useState<UploadPhase>("idle");
 
   const createMut = useCreateReview(placeId);
   const updateMut = useUpdateReview(placeId);
   const isPending = createMut.isPending || updateMut.isPending;
 
   const rating = form.watch("rating");
+
+  /**
+   * Обработка типичной 409 review_exists.
+   *
+   * Сценарий из бага:
+   *   1) Юзер заполнил отзыв, добавил HEIC-фото.
+   *   2) Фото-аплоад упал (unsupported_content_type) → ImagePicker показал ошибку.
+   *   3) Юзер убрал фото и снова жмёт "Опубликовать" → 409 review_exists.
+   *
+   * Что произошло на самом деле: на шаге 2 ImagePicker упал ДО создания отзыва,
+   * но если у юзера уже был отзыв на это место (с прошлой сессии или другого
+   * входа) — он остался. Сейчас обработка одинаковая для обоих случаев:
+   * 409 → закрываем диалог и подсказываем юзеру что отзыв уже есть, чтобы
+   * он мог отредактировать через троеточие на карточке отзыва (там Edit).
+   */
+  function handleSubmitError(err: unknown) {
+    extractError(err).then((e) => {
+      if (e.code === "review_exists") {
+        toast.info(
+          "Вы уже оставляли отзыв на это место. Найдите его в списке и нажмите «Редактировать».",
+        );
+        onOpenChange(false);
+        return;
+      }
+      toast.error(e.detail);
+    });
+  }
 
   const onSubmit = (values: FormValues) => {
     if (values.rating < 1) {
@@ -115,7 +135,7 @@ export function ReviewFormDialog({ placeId, open, onOpenChange, editing }: Props
       } = {};
       if (values.rating !== editing.rating) patch.rating = values.rating;
       if (values.text !== editing.text) patch.text = values.text;
-      if (photoTouched) patch.photo_key = photoKey; // null = удалить, string = заменить
+      if (photoTouched) patch.photo_key = photoKey;
 
       if (Object.keys(patch).length === 0) {
         onOpenChange(false);
@@ -124,7 +144,10 @@ export function ReviewFormDialog({ placeId, open, onOpenChange, editing }: Props
 
       updateMut.mutate(
         { id: editing.id, input: patch },
-        { onSuccess: () => onOpenChange(false) },
+        {
+          onSuccess: () => onOpenChange(false),
+          onError: handleSubmitError,
+        },
       );
     } else {
       createMut.mutate(
@@ -133,7 +156,10 @@ export function ReviewFormDialog({ placeId, open, onOpenChange, editing }: Props
           text: values.text,
           photo_key: photoKey,
         },
-        { onSuccess: () => onOpenChange(false) },
+        {
+          onSuccess: () => onOpenChange(false),
+          onError: handleSubmitError,
+        },
       );
     }
   };

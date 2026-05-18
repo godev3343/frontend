@@ -1,9 +1,11 @@
 // src/features/friends/components/profile-edit-sheet.tsx
-// Полная версия с коммитом 6 включённым.
+// Полный файл — заменить целиком.
+
 "use client";
 
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { useQueryClient } from "@tanstack/react-query";
+import { ArrowLeft } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
 import type { z } from "zod/v4";
 
@@ -36,6 +38,20 @@ type Props = {
 type FormInput = z.input<typeof profileEditSchema>;
 type FormOutput = z.output<typeof profileEditSchema>;
 
+/**
+ * Sheet редактирования профиля.
+ *
+ * UX-стратегия:
+ *   - Mobile (<sm): полноэкранный — на телефоне side-drawer 3/4 ширины
+ *     обрезает контент, выглядит неудобно. Растягиваем на весь экран,
+ *     добавляем "Назад к профилю" сверху чтобы было ясно как закрыть.
+ *   - Desktop (sm+): остаётся side-sheet справа (max-w-md).
+ *
+ * Почему ! префиксы:
+ *   sheet.tsx по умолчанию ставит data-[side=right]:w-3/4 — это селектор
+ *   с attribute, имеет более высокую специфичность чем обычный w-screen.
+ *   Без ! Tailwind merge не побеждает data-атрибутный селектор.
+ */
 export function ProfileEditSheet({ open, onOpenChange, defaultValues }: Props) {
   const queryClient = useQueryClient();
   const {
@@ -66,9 +82,21 @@ export function ProfileEditSheet({ open, onOpenChange, defaultValues }: Props) {
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="w-full overflow-y-auto sm:max-w-md"
+        className="!w-full !max-w-none h-svh rounded-none border-0 sm:!w-3/4 sm:!max-w-md sm:h-full sm:rounded-l-xl sm:border-l"
+        showCloseButton={false}
       >
         <SheetHeader>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="-ml-2 mb-2 self-start"
+            onClick={() => onOpenChange(false)}
+            disabled={busy}
+          >
+            <ArrowLeft className="mr-1 size-4" />
+            Назад к профилю
+          </Button>
           <SheetTitle>Редактировать профиль</SheetTitle>
           <SheetDescription>
             Аватар, имя, био и AI-предпочтения.
@@ -78,7 +106,7 @@ export function ProfileEditSheet({ open, onOpenChange, defaultValues }: Props) {
         <form
           id="profile-edit-form"
           onSubmit={handleSubmit(onSubmit)}
-          className="space-y-4 px-4"
+          className="flex-1 space-y-4 overflow-y-auto px-4"
         >
           <Controller
             control={control}
@@ -126,9 +154,6 @@ export function ProfileEditSheet({ open, onOpenChange, defaultValues }: Props) {
             )}
           </div>
 
-          {/* Вайбы — мульти-селектор. Изменения через setValue, чтобы
-              react-hook-form пометил форму как dirty и validate сработал
-              на submit (max 5 — двойная защита: VibeSelector + zod). */}
           <div className="space-y-2">
             <Label>Вайбы ({vibes.length} / 5)</Label>
             <VibeSelector

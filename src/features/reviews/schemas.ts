@@ -8,7 +8,14 @@ const idAsString = z.union([z.number(), z.string()]).transform((v) => String(v))
 export const reviewUserSchema = z.object({
   id: idAsString,
   public_name: z.string(),
-  avatar_url: z.string().url().nullable(),
+  // Бэк отдаёт "" (пустую строку) для юзеров без аватара —
+  // у пустой строки .url() ругается "Invalid URL". Делаем мягкий парсинг:
+  // принимаем string|null|undefined, нормализуем в "" для UI.
+  avatar_url: z
+    .string()
+    .nullable()
+    .optional()
+    .transform((v) => v ?? ""),
 });
 export type ReviewUser = z.infer<typeof reviewUserSchema>;
 
@@ -24,7 +31,11 @@ export const reviewSchema = z.object({
   rating: z.number().int().min(1).max(5),
   text: z.string(),
   user: reviewUserSchema,
-  photo_url: z.string().url().nullable(),
+  photo_url: z
+  .string()
+  .nullable()
+  .optional()
+  .transform((v) => (v && v.length > 0 ? v : null)),
   likes_count: z.number().int().nonnegative(),
   is_liked: z.boolean().nullable().transform((v) => v ?? false),
   is_mine: z.boolean(),

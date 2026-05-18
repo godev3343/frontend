@@ -28,6 +28,8 @@ import {
 } from "./api";
 import { friendsKeys } from "./query-keys";
 import type { Friendship, Paginated, UserProfile } from "./schemas";
+import type { FriendshipStatus } from "./schemas";  // если не было
+
 
 // ---------------------------------------------------------------------------
 // Queries
@@ -170,12 +172,15 @@ export function useSendFriendRequest() {
       showError(err);
     },
     onSuccess: (friendship, toUserId) => {
-      // Обновляем friendship_id, чтобы потом можно было отменить
       setProfileStatus(qc, toUserId, {
         friendship_status: "pending_outgoing",
         friendship_id: friendship.id,
       });
       qc.invalidateQueries({ queryKey: friendsKeys.outgoing() });
+      // Search-кеш с этим юзером тоже устарел (friendship_status сменился).
+      // Без этого юзер в поиске продолжит видеть "Добавить" → 409 при повторе.
+      // Инвалидируем все search-варианты (любой query) — это всего один префикс.
+      qc.invalidateQueries({ queryKey: ["friends", "search"] });
       toast.success("Заявка отправлена");
       track("friend_request_sent", { to_user_id: toUserId });
     },
@@ -208,10 +213,11 @@ export function useAcceptFriendRequest() {
       }
       showError(err);
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: friendsKeys.friendsList() });
-      toast.success("Теперь вы друзья");
-    },
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: friendsKeys.friendsList() });
+        qc.invalidateQueries({ queryKey: ["friends", "search"] });
+        toast.success("Теперь вы друзья");
+      },
   });
 }
 
@@ -241,6 +247,9 @@ export function useDeclineFriendRequest() {
         qc.setQueryData(friendsKeys.profile(ctx.userId), ctx.prevProfile);
       }
       showError(err);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["friends", "search"] });
     },
   });
 }
@@ -272,6 +281,9 @@ export function useCancelFriendRequest() {
       }
       showError(err);
     },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["friends", "search"] });
+    },
   });
 }
 
@@ -301,8 +313,44 @@ export function useRemoveFriend() {
       }
       showError(err);
     },
-    onSuccess: () => {
+      onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["friends", "search"] });
       toast.success("Удалён из друзей");
     },
   });
+}
+
+export function useFriendshipIdLookup(
+  userId: number,
+  status: FriendshipStatus,
+): number | null {
+  const qc = useQueryClient();
+
+  if (status === "pending_outgoing") {
+    const data = qc.getQueryData<InfiniteData<Paginated<Friendship>>>(
+      friendsKeys.outgoing(),
+    );
+    if (!data) return null;
+    for (const page of data.pages) {
+      for (const item of page.results) {
+        if (item.user.id === userId) return item.id;
+      }
+    }
+    return null;
+  }
+
+  if (status === "pending_incoming") {
+    const data = qc.getQueryData<InfiniteData<Paginated<Friendship>>>(
+      friendsKeys.incoming(),
+    );
+    if (!data) return null;
+    for (const page of data.pages) {
+      for (const item of page.results) {
+        if (item.user.id === userId) return item.id;
+      }
+    }
+    return null;
+  }
+
+  return null;
 }
