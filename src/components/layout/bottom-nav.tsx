@@ -33,8 +33,15 @@ export function BottomNav() {
   const pathname = usePathname();
   // Тихо: если useMe не готов (не залогинен / refresh идёт) — points = 0,
   // не показываем бейдж.
+  // ВАЖНО: useMe ДО early-return — иначе нарушаем Rules of Hooks
+  // (хук должен вызываться при каждом рендере в одном и том же порядке).
   const { data: me } = useMe();
   const points = me?.points ?? 0;
+
+  // На /onboarding юзер ещё не прошёл первый шаг — навигация бессмысленна
+  // и создаёт ощущение что онбординг опционален. AI без preferred_vibes
+  // даёт деградированные рекомендации — пускать туда некорректно.
+  if (pathname === '/onboarding') return null;
 
   return (
     <nav

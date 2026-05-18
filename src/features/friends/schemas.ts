@@ -1,7 +1,9 @@
 // src/features/friends/schemas.ts
 import { z } from "zod/v4";
 
+import { vibeSchema } from "@/features/auth/schemas";
 import { userStatusSchema } from "@/features/points/status-schema";
+
 
 
 /**
@@ -25,8 +27,24 @@ export const publicUserSchema = z
     avatar_url: z.string().nullable().optional().default(null),
     bio: z.string().default(''),
     points: z.number().default(0),
-    status: userStatusSchema.nullable().optional(),    // ← НОВОЕ
-
+    status: userStatusSchema.nullable().optional(),
+    // /api/users/search возвращает friendship_status (см. UserSearchResultSerializer
+    // в apps/social/serializers/user_public.py). Без него фронт всегда рендерит
+    // "Добавить" → бэк возвращает 409 при попытке отправить дубль-заявку.
+    // На /users/{id} это поле тоже есть; на /api/friends/* — нет (там другие
+    // сериализаторы для уже-известных дружб). Делаем optional с дефолтом 'none'.
+    friendship_status: z
+      .string()
+      .optional()
+      .transform((v) => {
+        if (!v) return 'none' as const;
+        const parsed = friendshipStatusSchema.safeParse(v);
+        return parsed.success ? parsed.data : ('none' as const);
+      }),
+    // friendship_id бэк в поиске пока не отдаёт → новый бэк-долг #5
+    // (см. PR_HANDOFF). Без него кнопка "Отменить заявку" будет disabled,
+    // но это всё равно лучше чем нынешнее 409.
+    friendship_id: z.number().nullable().optional().default(null),
   })
   .transform((d) => ({
     id: d.id,
@@ -34,7 +52,9 @@ export const publicUserSchema = z
     avatar_url: d.avatar_url ?? '',
     bio: d.bio,
     points: d.points,
-    status: d.status ?? null,                          // ← НОВОЕ
+    status: d.status ?? null,
+    friendship_status: d.friendship_status,
+    friendship_id: d.friendship_id,
   }));
 
 export type PublicUser = z.infer<typeof publicUserSchema>;
@@ -195,6 +215,11 @@ export const profileEditSchema = z.object({
     .max(32, "Максимум 32 символа"),
   bio: z.string().trim().max(280, "Максимум 280 символов").default(""),
   avatar_url: z.string().default(""),
+  // AI-предпочтения. Бэк UserMeUpdateSerializer (apps/social/serializers/user_me.py)
+  // принимает оба поля как required=False — отправляем всегда (массив пустой ok).
+  // Лимит 5 — бэк, и для фронт-UX ограничивает VibeSelector через max=5.
+  preferred_vibes: z.array(vibeSchema).max(5).default([]),
+  ai_context: z.string().trim().max(500, "Максимум 500 символов").default(""),
 });
 
 export type ProfileEditInput = z.infer<typeof profileEditSchema>;

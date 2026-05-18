@@ -1,7 +1,18 @@
 // src/features/auth/schemas.ts
 import { z } from "zod/v4";
 
+import { VIBE_TAGS, type VibeTag } from '@/components/brand/vibe-badge';
 import { userStatusSchema } from "@/features/points/status-schema";
+
+// Добавить КУДА УГОДНО в файле (например, перед userSchema):
+
+/**
+ * Vibe enum как zod-схема. Источник правды — VIBE_TAGS из vibe-badge
+ * (там же тип VibeTag, иконки, лейблы синхронны).
+ *
+ * Используется в userSchema (preferred_vibes) и в profileEditSchema.
+ */
+export const vibeSchema = z.enum(VIBE_TAGS as unknown as [VibeTag, ...VibeTag[]]);
 
 export const emailSchema = z
   .string()
@@ -96,8 +107,13 @@ export const userSchema = z.object({
   is_onboarded: z.boolean().default(false),
   friends_count: z.number().int().default(0),
   checkins_count: z.number().int().default(0),
-  status: userStatusSchema.nullable().optional(),   // ← НОВОЕ
-
+  status: userStatusSchema.nullable().optional(),
+  // AI-персонализация. Бэк (apps/social/serializers/user_me.py::UserMeSerializer)
+  // отдаёт оба поля в /api/users/me. Минимальный сериализатор онбординг-эндпоинта
+  // их НЕ отдаёт — поэтому делаем поля с default. Onboarding-страница после
+  // POST /onboarding инвалидирует me и берёт полного юзера через GET /me.
+  preferred_vibes: z.array(vibeSchema).default([]),
+  ai_context: stringFromNullable.default(''),
 });
 
 export type User = z.infer<typeof userSchema>;

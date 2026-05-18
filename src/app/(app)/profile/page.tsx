@@ -92,14 +92,16 @@ pointsExtra={
       />
 
       <ProfileEditSheet
-        open={editOpen}
-        onOpenChange={setEditOpen}
-        defaultValues={{
-          display_name: me.display_name,
-          bio: me.bio,
-          avatar_url: me.avatar_url,
-        }}
-      />
+  open={editOpen}
+  onOpenChange={setEditOpen}
+  defaultValues={{
+    display_name: me.display_name,
+    bio: me.bio,
+    avatar_url: me.avatar_url,
+    preferred_vibes: me.preferred_vibes,
+    ai_context: me.ai_context,
+  }}
+/>
 
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">История чек-инов</h2>

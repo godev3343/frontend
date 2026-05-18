@@ -1,23 +1,34 @@
 // src/features/friends/components/search-users-panel.tsx
 "use client";
 
-import { Search, UserPlus } from "lucide-react";
+import { Search } from "lucide-react";
 import { useState } from "react";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 
-import { useSearchUsers, useSendFriendRequest } from "../hooks";
+import { useSearchUsers } from "../hooks";
+import { FriendshipButton } from "./friendship-button";
 import { UserCard } from "./user-card";
 
+/**
+ * Поиск пользователей с inline-кнопкой действия по статусу дружбы.
+ *
+ * v2: используем FriendshipButton вместо голой "Добавить" — он сам решает
+ * что рендерить по friendship_status (none/pending_outgoing/pending_incoming/
+ * friends/self). Это устраняет 409 при попытке отправить дубль-заявку.
+ *
+ * Бэк-долг #5: UserSearchResultSerializer не отдаёт friendship_id.
+ * Для pending_outgoing/incoming это значит кнопки "Отменить"/"Принять"
+ * disabled. Юзер всё ещё может перейти на /users/{id} и сделать действие
+ * там (UserPublicSerializer friendship_id отдаёт).
+ */
 export function SearchUsersPanel() {
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebouncedValue(query, 300);
 
   const search = useSearchUsers(debouncedQuery);
-  const send = useSendFriendRequest();
 
   return (
     <div className="space-y-3">
@@ -53,15 +64,11 @@ export function SearchUsersPanel() {
               user={user}
               href={`/users/${user.id}`}
               action={
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => send.mutate(user.id)}
-                  disabled={send.isPending}
-                >
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  Добавить
-                </Button>
+                <FriendshipButton
+                  userId={user.id}
+                  status={user.friendship_status}
+                  friendshipId={user.friendship_id}
+                />
               }
             />
           ))}

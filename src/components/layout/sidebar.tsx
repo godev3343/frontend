@@ -28,6 +28,9 @@ const NAV_ITEMS = [
 export function Sidebar() {
   const pathname = usePathname();
 
+  // На /onboarding скрываем sidebar — см. bottom-nav.tsx для обоснования.
+  if (pathname === '/onboarding') return null;
+
   return (
     <aside
       className={cn(

@@ -76,7 +76,7 @@ export function EventDetailView({ eventId }: Props) {
               <span
                 key={v}
                 className="rounded-full px-2.5 py-0.5 text-xs font-medium text-background"
-                style={{ backgroundColor: c.hex }}
+                style={{ backgroundColor: c.value }}
               >
                 {c.label}
               </span>

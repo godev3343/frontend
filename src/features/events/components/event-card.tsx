@@ -75,7 +75,7 @@ export function EventCard({ event, featured = false }: Props) {
               <span
                 key={v}
                 className="rounded-full px-2 py-0.5 text-[10px] font-medium text-background"
-                style={{ backgroundColor: c.hex }}
+                style={{ backgroundColor: c.value }}
               >
                 {c.label}
               </span>

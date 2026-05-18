@@ -96,7 +96,7 @@ export function PlaceSheet({ placeId, userLocation, onClose }: Props) {
                       key={v.vibe}
                       className="rounded-full px-2.5 py-0.5 text-xs font-medium text-background"
                       style={{
-                        backgroundColor: c.hex,
+                        backgroundColor: c.value,
                         opacity: 0.4 + v.weight * 0.6,
                       }}
                     >
@@ -112,7 +112,7 @@ export function PlaceSheet({ placeId, userLocation, onClose }: Props) {
                   <div className="flex flex-wrap items-center gap-2">
                     <span
                       className="rounded-full px-2.5 py-0.5 text-xs font-medium text-background"
-                      style={{ backgroundColor: c.hex }}
+                      style={{ backgroundColor: c.value }}
                     >
                       {c.label}
                     </span>

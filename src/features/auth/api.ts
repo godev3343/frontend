@@ -1,4 +1,5 @@
 // src/features/auth/api.ts
+import type { VibeTag } from '@/components/brand/vibe-badge';
 import { apiClient } from '@/lib/api/client';
 
 import {
@@ -16,6 +17,7 @@ import {
   type User,
   userSchema,
 } from './schemas';
+
 
 /**
  * Сохраняет refresh в httpOnly cookie через Next route и возвращает access.
@@ -100,4 +102,14 @@ export async function submitOnboarding(input: OnboardingInput): Promise<User> {
     .post('api/users/me/onboarding', { json: input })
     .json();
   return userSchema.parse(raw);
+}
+
+export async function updatePreferences(input: {
+  preferred_vibes: VibeTag[];
+  ai_context: string;
+}): Promise<User> {
+  await apiClient
+    .put('api/users/me/preferences', { json: input })
+    .json<{ preferred_vibes: string[]; ai_context: string }>();
+  return fetchMe();
 }
