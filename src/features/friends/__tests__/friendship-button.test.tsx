@@ -5,15 +5,20 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import { FriendshipButton } from "../components/friendship-button";
+import type * as FriendsHooks from "../hooks";
 
 // Мокаем хуки — тестируем UI-логику кнопки, не сеть
-vi.mock("../hooks", () => ({
-  useSendFriendRequest: () => ({ mutate: vi.fn(), isPending: false }),
-  useAcceptFriendRequest: () => ({ mutate: vi.fn(), isPending: false }),
-  useDeclineFriendRequest: () => ({ mutate: vi.fn(), isPending: false }),
-  useCancelFriendRequest: () => ({ mutate: vi.fn(), isPending: false }),
-  useRemoveFriend: () => ({ mutate: vi.fn(), isPending: false }),
-}));
+vi.mock('../hooks', async (importOriginal) => {
+  const actual = await importOriginal<typeof FriendsHooks>();
+  return {
+    ...actual,
+    useSendFriendRequest: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
+    useAcceptFriendRequest: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
+    useDeclineFriendRequest: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
+    useCancelFriendRequest: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
+    useRemoveFriend: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
+  };
+});
 
 function wrapper({ children }: { children: React.ReactNode }) {
   const qc = new QueryClient({

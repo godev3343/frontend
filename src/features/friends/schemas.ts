@@ -28,6 +28,7 @@ export const publicUserSchema = z
     bio: z.string().default(''),
     points: z.number().default(0),
     status: userStatusSchema.nullable().optional(),
+    preferred_vibes: z.array(vibeSchema).default([]), 
     // /api/users/search возвращает friendship_status (см. UserSearchResultSerializer
     // в apps/social/serializers/user_public.py). Без него фронт всегда рендерит
     // "Добавить" → бэк возвращает 409 при попытке отправить дубль-заявку.
@@ -105,7 +106,8 @@ export const userProfileSchema = z
     friendship_id: z.number().nullable().default(null),
     friends_count: z.number().default(0),
     checkins_count: z.number().default(0),
-    status: userStatusSchema.nullable().optional(),    // ← НОВОЕ
+    status: userStatusSchema.nullable().optional(),
+    preferred_vibes: z.array(vibeSchema).default([]),   // ← ДОБАВИТЬ
 
   })
   .transform((d) => ({

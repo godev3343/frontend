@@ -60,7 +60,7 @@ export default function ProfilePage() {
           points: me.points,
         }}
         status={me.status}
-        topVibes={[]}                       // бэк-долг #4: me.top_vibes
+        topVibes={(me.preferred_vibes ?? []).slice(0, 3)}
         animatePoints
 pointsExtra={
   <div className="flex items-center gap-3 text-xs">

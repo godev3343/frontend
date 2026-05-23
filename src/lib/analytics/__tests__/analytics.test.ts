@@ -2,11 +2,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
 // env замокаем: без NEXT_PUBLIC_POSTHOG_KEY analytics должен быть no-op
-vi.mock('@/lib/env', () => ({
-  env: {
-    NEXT_PUBLIC_POSTHOG_KEY: undefined,
-  },
-}));
 
 const phMock = {
   capture: vi.fn(),

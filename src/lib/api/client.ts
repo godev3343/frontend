@@ -33,7 +33,7 @@ async function performRefresh(): Promise<string | null> {
 
 export const apiClient = ky.create({
   prefix: env.NEXT_PUBLIC_API_URL,
-  timeout: 15000,
+  timeout: 30000,
   retry: { limit: 1, methods: ['get'] },
   hooks: {
     beforeRequest: [
@@ -42,28 +42,31 @@ export const apiClient = ky.create({
         if (token) request.headers.set('Authorization', `Bearer ${token}`);
       },
     ],
-    afterResponse: [
-      async ({ request, response }): Promise<KyResponse | undefined> => {
-        if (response.status !== 401) return response;
+afterResponse: [
+  async ({ request, options, response }): Promise<KyResponse | undefined> => {
+    if (response.status !== 401) return response;
+    if (request.url.includes('/api/auth/refresh')) return response;
+    if (request.headers.get('x-retry') === '1') return response;
 
-        // защита от бесконечной петли: если это сам refresh упал — не ретраим
-        if (request.url.includes('/api/auth/refresh')) return response;
+    const newAccess = await performRefresh();
+    if (!newAccess) {
+      useAuthStore.getState().clear();
+      return response;
+    }
 
-        // защита от ретрая ретрая — кастомный заголовок
-        if (request.headers.get('x-retry') === '1') return response;
-
-        const newAccess = await performRefresh();
-        if (!newAccess) {
-          useAuthStore.getState().clear();
-          return response;
-        }
-
-        // ретраим оригинальный запрос с новым токеном
-        request.headers.set('Authorization', `Bearer ${newAccess}`);
-        request.headers.set('x-retry', '1');
-        return ky(request);
+    // Нельзя делать ky(request) на POST — body уже потреблён.
+    // Собираем новый запрос из options, которые ky хранит для нас.
+    return ky(request.url, {
+      ...options,
+      method: request.method as 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+      headers: {
+        ...Object.fromEntries(request.headers),
+        Authorization: `Bearer ${newAccess}`,
+        'x-retry': '1',
       },
-    ],
+    });
+  },
+],
   },
 });
 
@@ -183,6 +186,20 @@ export async function extractError(err: unknown): Promise<ExtractedError> {
 
   // 3. Всё остальное — реальная сеть/timeout/CORS/AbortError/etc.
    
-  console.error('[extractError] non-HTTP, non-Zod error:', err);
-  return { detail: 'Сетевая ошибка', status: 0 };
+console.error('[extractError] non-HTTP, non-Zod error:', err);
+
+const name = (err as Error)?.name;
+const message = (err as Error)?.message ?? '';
+
+if (name === 'TimeoutError' || message.includes('timed out')) {
+  return {
+    detail: 'Сервер не отвечает. Попробуй ещё раз через минуту.',
+    status: 0,
+    code: 'timeout',
+  };
+}
+if (name === 'AbortError') {
+  return { detail: 'Запрос отменён', status: 0, code: 'aborted' };
+}
+return { detail: 'Сетевая ошибка', status: 0, code: 'network' };
 }

@@ -25,9 +25,9 @@ type Props = {
   status?: UserStatus | null;
   /**
    * Топовые вайбы юзера — для vibe-gradient фона шапки.
-   * Если массив пуст (бэк ещё не отдаёт top_vibes на /me и /users/{id}),
-   * рендерится lime-accent фолбэк — см. getProfileGradient.
-   * Бэк-долг #4 — добавить top_vibes в MeSerializer + UserPublicSerializer.
+   * Если массив пуст, рендерится lime-accent фолбэк — см. getProfileGradient.
+   * Источник: на /me — preferred_vibes юзера; когда бэк добавит агрегированные
+   * top_vibes (поведенческие, по чекинам) — переключить на них с fallback на preferred.
    */
   topVibes?: readonly Vibe[];
 
