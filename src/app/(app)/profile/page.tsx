@@ -13,7 +13,6 @@ import { LogoutButton } from "@/features/auth/logout-button";
 import { MyCheckinsList } from "@/features/checkins/components/my-checkins-list";
 import { ProfileEditSheet } from "@/features/friends/components/profile-edit-sheet";
 import { ProfileHeader } from "@/features/friends/components/profile-header";
-import { env } from "@/lib/env";
 
 export default function ProfilePage() {
   const { data: me, isUnauthenticated } = useMe();
@@ -64,14 +63,12 @@ export default function ProfilePage() {
         animatePoints
 pointsExtra={
   <div className="flex items-center gap-3 text-xs">
-    {env.NEXT_PUBLIC_FEATURE_POINTS_HISTORY && (
       <Link
         href="/profile/points"
         className="text-primary underline-offset-2 hover:underline focus-visible:underline"
       >
         История
       </Link>
-    )}
     <Link
       href="/profile/achievements"
       className="text-primary underline-offset-2 hover:underline focus-visible:underline"

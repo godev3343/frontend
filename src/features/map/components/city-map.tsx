@@ -10,7 +10,7 @@ import Map, {
   type ViewStateChangeEvent,
 } from "react-map-gl/maplibre";
 
-import { AiFabGated as AiFab } from "@/features/ai/components/ai-fab-gated";
+import { AiFab } from "@/features/ai/components/ai-fab";
 import { EventMapMarker } from "@/features/events/components/event-map-marker";
 import { useEvents } from "@/features/events/hooks/use-events";
 import { usePlaces } from "@/features/map/hooks/use-places";

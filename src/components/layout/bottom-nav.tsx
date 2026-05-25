@@ -5,7 +5,7 @@ import { Calendar, Map, Newspaper, User, Users } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-import { AiNavButtonGated as AiNavButton } from '@/features/ai/components/ai-nav-button-gated';
+import { AiNavButton } from '@/features/ai/components/ai-nav-button';
 import { useMe } from '@/features/auth/hooks';
 import { cn } from '@/lib/utils';
 
