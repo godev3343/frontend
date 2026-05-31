@@ -7,7 +7,9 @@ import { useMe } from "@/features/auth/hooks";
 import type { useGlobalLeaderboard } from "../hooks";
 import { LeaderboardRowItem } from "./leaderboard-row";
 
-// Оба хука (global/friends) возвращают идентичный тип — берём один как референс.
+// Тип берём прямо у хука — точное совпадение с тем, что отдаёт useInfiniteQuery
+// (включая выведенный TPageParam). import type стирается при компиляции,
+// связь между файлами рантайму не нужна.
 type LeaderboardQuery = ReturnType<typeof useGlobalLeaderboard>;
 
 export function LeaderboardList({
