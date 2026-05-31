@@ -3,7 +3,7 @@
 
 import { Crosshair } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Map, {
   type MapRef,
   NavigationControl,
@@ -45,6 +45,28 @@ export function CityMap() {
 
   const { coords: userLocation, status: geoStatus, request: requestGeo } =
     useUserLocation();
+  const { coords: userLocation, status: geoStatus, request: requestGeo } =
+    useUserLocation();
+
+  // Автоцентр на пользователе при открытии карты.
+  // mapLoaded гарантирует, что map-инстанс готов; geoStatus === "granted"
+  // означает реальный GPS (fallback на Астану его не выставляет, так что
+  // при denied/error карта просто остаётся на дефолтном центре — это ок).
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const didAutoCenter = useRef(false);
+
+  useEffect(() => {
+    if (didAutoCenter.current) return;
+    if (!mapLoaded) return;
+    if (geoStatus !== "granted" || !userLocation) return;
+
+    didAutoCenter.current = true;
+    mapRef.current?.flyTo({
+      center: [userLocation.lng, userLocation.lat],
+      zoom: 15,
+      duration: 600,
+    });
+  }, [mapLoaded, geoStatus, userLocation]);
   const { selected: vibes } = useVibeFilter();
 
   // Single source of truth for the selected place — URL.
@@ -81,6 +103,7 @@ export function CityMap() {
   }, []);
 
   const handleLoad = useCallback(() => {
+    setMapLoaded(true);
     const map = mapRef.current;
     if (!map) return;
     const bounds = map.getBounds();
