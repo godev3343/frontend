@@ -73,14 +73,17 @@ type VibeBadgeProps = {
 export function VibeBadge({ vibe, label, size, variant, className }: VibeBadgeProps) {
   const Icon = VIBE_ICONS[vibe];
   const defaultLabel = VIBE_COLORS[vibe].label;
-  const cssVar = `var(--color-vibe-${vibe})`;
+  const color = VIBE_COLORS[vibe].value;
 
   const colorStyle =
     variant === 'solid'
-      ? { backgroundColor: cssVar }
+      ? { backgroundColor: color }
       : variant === 'outline'
-        ? { color: cssVar, boxShadow: `inset 0 0 0 1px ${cssVar}` }
-        : { backgroundColor: `color-mix(in oklab, ${cssVar} 20%, transparent)`, color: cssVar };
+        ? { color, boxShadow: `inset 0 0 0 1px ${color}` }
+        : {
+            backgroundColor: `color-mix(in oklab, ${color} 20%, transparent)`,
+            color,
+          };
 
   return (
     <span

@@ -11,6 +11,49 @@ import { ProfileHeader } from "@/features/friends/components/profile-header";
 import { useUserProfile } from "@/features/friends/hooks";
 import { vibeMatchPercent } from "@/features/friends/lib/vibe-match";
 
+function VibeMatchRing({ value }: { value: number }) {
+  const size = 72;
+  const stroke = 7;
+  const r = (size - stroke) / 2;
+  const circumference = 2 * Math.PI * r;
+  const offset = circumference * (1 - value / 100);
+
+  return (
+    <div className="relative shrink-0" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90">
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          strokeWidth={stroke}
+          stroke="color-mix(in oklab, var(--primary) 18%, transparent)"
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          stroke="var(--primary)"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+        />
+      </svg>
+      <span className="absolute inset-0 flex items-center justify-center text-sm font-semibold tabular-nums">
+        {value}%
+      </span>
+    </div>
+  );
+}
+
+function matchPhrase(value: number): string {
+  if (value >= 67) return "На одной волне";
+  if (value >= 34) return "Есть общие вайбы";
+  return "Разные волны";
+}
+
 export default function UserProfilePage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
@@ -76,21 +119,24 @@ export default function UserProfilePage() {
       />
 
       {theirVibes.length > 0 && (
-        <section className="space-y-3 rounded-2xl border bg-card p-4">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-sm font-medium text-muted-foreground">Вайбы</h2>
-            {match !== null && (
-              <span className="text-sm text-muted-foreground">
-                Совпадение{" "}
-                <span className="font-semibold tabular-nums text-foreground">
-                  {match}%
-                </span>
-              </span>
-            )}
-          </div>
+        <section className="space-y-4 rounded-2xl border bg-card p-5">
+          {match !== null ? (
+            <div className="flex items-center gap-4">
+              <VibeMatchRing value={match} />
+              <div className="space-y-0.5">
+                <div className="text-mono-label">Совпадение вайбов</div>
+                <p className="text-sm font-medium text-foreground">
+                  {matchPhrase(match)}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="text-mono-label">Вайбы</div>
+          )}
+
           <div className="flex flex-wrap gap-2">
             {theirVibes.map((vibe) => (
-              <VibeBadge key={vibe} vibe={vibe} size="sm" />
+              <VibeBadge key={vibe} vibe={vibe} />
             ))}
           </div>
         </section>
