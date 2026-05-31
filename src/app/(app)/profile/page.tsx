@@ -61,22 +61,28 @@ export default function ProfilePage() {
         status={me.status}
         topVibes={(me.preferred_vibes ?? []).slice(0, 3)}
         animatePoints
-pointsExtra={
-  <div className="flex items-center gap-3 text-xs">
-      <Link
-        href="/profile/points"
-        className="text-primary underline-offset-2 hover:underline focus-visible:underline"
-      >
-        История
-      </Link>
-    <Link
-      href="/profile/achievements"
-      className="text-primary underline-offset-2 hover:underline focus-visible:underline"
-    >
-      Достижения
-    </Link>
-  </div>
-}
+        pointsExtra={
+          <div className="flex items-center gap-3 text-xs">
+            <Link
+              href="/profile/points"
+              className="text-primary underline-offset-2 hover:underline focus-visible:underline"
+            >
+              История
+            </Link>
+            <Link
+              href="/profile/achievements"
+              className="text-primary underline-offset-2 hover:underline focus-visible:underline"
+            >
+              Достижения
+            </Link>
+            <Link
+              href="/leaderboard"
+              className="text-primary underline-offset-2 hover:underline focus-visible:underline"
+            >
+              Рейтинг
+            </Link>
+          </div>
+        }
         action={
           <div className="flex gap-2">
             <Button onClick={() => setEditOpen(true)}>
