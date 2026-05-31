@@ -3,6 +3,7 @@
 
 import { Heart, MoreVertical, Pencil, Star, Trash2 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 import { UserAvatar } from "@/components/brand/user-avatar";
 import { Button } from "@/components/ui/button";
@@ -47,17 +48,20 @@ export function ReviewCard({
     <article className="space-y-3 rounded-2xl border border-border bg-card/40 p-4">
       <header className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          {/* Используем общий UserAvatar — он уже на токенах (bg-secondary
-              + ring-border) и показывает инициалы при отсутствии фото. */}
-          <UserAvatar
-            src={review.user.avatar_url}
-            name={review.user.public_name}
-            size="sm"
-          />
+          <Link href={`/users/${review.user.id}`} aria-label={`Профиль ${review.user.public_name}`}>
+            <UserAvatar
+              src={review.user.avatar_url}
+              name={review.user.public_name}
+              size="sm"
+            />
+          </Link>
           <div>
-            <div className="text-sm font-medium text-foreground">
+            <Link
+              href={`/users/${review.user.id}`}
+              className="text-sm font-medium text-foreground hover:underline"
+            >
               {review.user.public_name}
-            </div>
+            </Link>
             <div className="text-mono-label text-muted-foreground">
               {formatDate(review.created_at)}
             </div>
