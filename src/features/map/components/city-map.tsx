@@ -45,8 +45,6 @@ export function CityMap() {
 
   const { coords: userLocation, status: geoStatus, request: requestGeo } =
     useUserLocation();
-  const { coords: userLocation, status: geoStatus, request: requestGeo } =
-    useUserLocation();
 
   // Автоцентр на пользователе при открытии карты.
   // mapLoaded гарантирует, что map-инстанс готов; geoStatus === "granted"
