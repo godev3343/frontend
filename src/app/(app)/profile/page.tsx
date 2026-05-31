@@ -1,7 +1,7 @@
 // src/app/(app)/profile/page.tsx
 "use client";
 
-import { Pencil } from "lucide-react";
+import { Crown, Pencil, Store } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -89,16 +89,49 @@ pointsExtra={
       />
 
       <ProfileEditSheet
-  open={editOpen}
-  onOpenChange={setEditOpen}
-  defaultValues={{
-    display_name: me.display_name,
-    bio: me.bio,
-    avatar_url: me.avatar_url,
-    preferred_vibes: me.preferred_vibes,
-    ai_context: me.ai_context,
-  }}
-/>
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        defaultValues={{
+          display_name: me.display_name,
+          bio: me.bio,
+          avatar_url: me.avatar_url,
+          preferred_vibes: me.preferred_vibes,
+          ai_context: me.ai_context,
+        }}
+      />
+
+      <section className="grid gap-3 sm:grid-cols-2">
+        <Button
+          asChild
+          className="h-auto flex-col items-start gap-1 py-4 text-left shadow-glow-accent"
+        >
+          <Link href="/profile/subscription">
+            <span className="flex items-center gap-2 font-semibold">
+              <Crown className="size-4" strokeWidth={2} />
+              Go Premium
+            </span>
+            <span className="text-xs font-normal opacity-80">
+              Подписка для пользователей
+            </span>
+          </Link>
+        </Button>
+
+        <Button
+          asChild
+          variant="secondary"
+          className="h-auto flex-col items-start gap-1 py-4 text-left"
+        >
+          <Link href="/profile/partner">
+            <span className="flex items-center gap-2 font-semibold">
+              <Store className="size-4" strokeWidth={2} />
+              Go for Business
+            </span>
+            <span className="text-xs font-normal text-[color:var(--text-mute)]">
+              Подписка для партнёров (B2B)
+            </span>
+          </Link>
+        </Button>
+      </section>
 
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">История чек-инов</h2>
